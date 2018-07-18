@@ -23,7 +23,7 @@ make -j
 The file examples/action_example_module.cpp is an example on how the your YARP BT action should look like, it performs an action (it is an action in the Behavior Tree).
 Your action is a thrift server and does stuff. The Behavior Tree is a client and tells to the Server when and if the Server have to start (Tick) and which have to stop (Halt).
 
-in your module you should implement two functions: `int32_t Tick()` and `void Halt()`
+in your module you should implement two functions: `int Tick()` and `void Halt()`
 
 
 In the function bool Tick() you must write the code to be executed when the module needs to be run.
@@ -33,7 +33,7 @@ To allow preemption of your action, it is preferable to check whenever possible 
 For example:
 
 
-    int32_t Tick()
+    int Tick()
     {
         if (!is_halted())
         {
@@ -45,7 +45,6 @@ For example:
 
 In the function Halt() you must write the code to be executed when the module needs to be stopped (e.g. when stopping a walking module we would like to have to robot stop in a home position).
 For Example:
-
 
     void Halt()
     {
