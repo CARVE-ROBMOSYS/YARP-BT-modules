@@ -84,10 +84,6 @@ You can test your action or condition by running the module and calling the rpc 
 The port name is `/<module_name>/cmd` (e.g. for the module abovem the port is /MyBTAction/cmd)
 
 
-### Test your YARP action or condition
-TODO
-
-
 ### Responsible ###
 
 Michele Colledanchise michele.colledanchise@iit.it
