@@ -26,16 +26,16 @@ Your action is a thrift server and does stuff. The Behavior Tree is a client and
 in your module you should implement two functions: `int Tick()` and `void Halt()`
 
 
-In the function bool Tick() you must write the code to be executed when the module needs to be run.
+In the function `int Tick()` you must write the code to be executed when the module needs to be run.
 The function it must return BT_SUCCESS if the execution of the action has succeeded and BT_FAILURE if it has failed.
-To allow preemption of your action, it is preferable to check whenever possible if the action has been halted checking the function is_halted().
+To allow preemption of your action, it is preferable to check whenever possible if the action has been halted checking the function `is_halt_requested()`.
 
 For example:
 
 
     int Tick()
     {
-        if (!is_halted())
+        if (!is_halt_requested())
         {
             std::cout << "Doing Something" << std::endl;
         }
@@ -43,7 +43,7 @@ For example:
     }
 
 
-In the function Halt() you must write the code to be executed when the module needs to be stopped (e.g. when stopping a walking module we would like to have to robot stop in a home position).
+In the function `void Halt()` you must write the code to be executed when the module needs to be stopped (e.g. when stopping a walking module we would like to have to robot stop in a home position).
 For Example:
 
     void Halt()
