@@ -19,11 +19,38 @@ cmake ..
 make -j
 ```
 
-
-
 ### Set up a Behavior Tree's action in YARP
-TODO
+The file examples/action_example_module.cpp is an example on how the your YARP BT action should look like, it performs an action (it is an action in the Behavior Tree).
+Your action is a thrift server and does stuff. The Behavior Tree is a client and tells to the Server when and if the Server have to start (Tick) and which have to stop (Halt).
 
+in your module you should implement two functions: `int32_t Tick()` and `void Halt()`
+
+
+In the function bool Tick() you must write the code to be executed when the module needs to be run.
+The function it must return BT_SUCCESS if the execution of the action has succeeded and BT_FAILURE if it has failed.
+To allow preemption of your action, it is preferable to check whenever possible if the action has been halted checking the function is_halted().
+
+For example:
+
+
+    int32_t Tick()
+    {
+        if (!is_halted())
+        {
+            std::cout << "Doing Something" << std::endl;
+        }
+        return BT_SUCCESS;
+    }
+
+
+In the function Halt() you must write the code to be executed when the module needs to be stopped (e.g. when stopping a walking module we would like to have to robot stop in a home position).
+For Example:
+
+
+    void Halt()
+    {
+            std::cout << "Halting the Action" << std::endl;
+    }
 
 ### Set up a Behavior Tree's condition in YARP
 TODO
