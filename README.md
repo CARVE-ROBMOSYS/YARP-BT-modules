@@ -52,7 +52,36 @@ For Example:
     }
 
 ### Set up a Behavior Tree's condition in YARP
-TODO
+**NOTE:** The function Halt() is blocking. Hence you should put here the piece of code you want to execute before continuing the execution of the Behavior Tree.
+          However, the code in Tick() (between one is_halted() checkpoint and another) is still being executed in another thread. In some cases, we do not want to waste time waiting for the code to reach
+          the next checkpoint (e.g. the action is writing in a port that nobody is reading) but is some other cases, we do need to wait for the code to reach the next checkpoint (e.g. the action is writing commands to a motor).
+          If we want to wait for the code to reach the next checkpoint, just add the following while loop in the function Halt().
+
+
+        while (is_running())
+        {
+            std::cout << "The Action is still running, waiting for the code to reach the next checkpoint" << std::endl;
+            // a sleep here could be helpful
+        }
+
+        
+If not, do not add the while loop.
+Then set a name for your module. The name has the be unique. It will be used bt the behavior tree to recognize it. For example if you created a class called MyBTModule
+
+     MyActionModule* action_module = new MyActionModule("MyBTAction");
+
+
+### Set up a Behavior Tree's condition in YARP
+The procedure is similar to the one for the action node, with the only difference that you don't need to implement the function Halt().
+
+The file examples/action_example_module.cpp gives an example of a BT condiiton node in YARP.
+
+    
+
+### Test your YARP action or condition
+
+You can test your action or condition by running the module and calling the rpc services `request_tick()`  and `request_halt()`, the latter for actions only. 
+The port name is `/<module_name>/cmd` (e.g. for the module abovem the port is /MyBTAction/cmd)
 
 
 ### Test your YARP action or condition
