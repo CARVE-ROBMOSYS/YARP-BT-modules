@@ -11,12 +11,12 @@ This package contains the C++ classes that your YARP RFModule should inherith. I
 Download and build the repository 
 
 ```console
-git clone https://github.com/CARVE-ROBMOSYS/YARP-BT-modules
-cd YARP-BT-modules
-mkdir build
-cd build
-cmake ..
-make -j
+$ git clone https://github.com/CARVE-ROBMOSYS/YARP-BT-modules
+$ cd YARP-BT-modules
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make -j
 ```
 
 ### Set up a Behavior Tree's action in YARP
