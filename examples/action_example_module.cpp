@@ -16,17 +16,16 @@
 #include <thread>             //for this_thread::sleep_for
 //YARP imports
 #include <yarp/os/Network.h>  // for yarp::os::Network
-#include <yarp/os/RFModule.h> // for yarp::os::ResourceFinder
 #include <yarp/os/LogStream.h> // for yError()
 
 //behavior trees imports
-#include <yarp_bt_action_module.h>   // for YARPBTActionModule
+#include <yarp_bt_action_module.h>   // for YARPBTActionTickable
 
-class MyAction : public YARPBTActionModule
+class MyAction : public YARPBTActionTickable
 {
 public:
     bool action_has_succeded;
-    MyAction(std::string name) : YARPBTActionModule(name)
+    MyAction(std::string name) : YARPBTActionTickable(name)
     {
         action_has_succeded = false;
     }
@@ -151,10 +150,14 @@ int main(int argc, char * argv[])
               <<" then type help to find the available commands "
               << std::endl;
 
-    /* create your module */
-    MyAction module("ActionExample");
+    /* create your tickable node */
+    MyAction node("ActionExample");
+    node.configure();
 
-    rf.configure(argc, argv);
-    module.runModule(rf);
+    while (true)
+    {
+        std::this_thread::sleep_for( std::chrono::milliseconds(100));
+    }
+
     return 0;
 }

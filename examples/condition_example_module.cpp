@@ -14,17 +14,16 @@
 
 //YARP imports
 #include <yarp/os/Network.h>  // for yarp::os::Network
-#include <yarp/os/RFModule.h> // for yarp::os::ResourceFinder
 #include <yarp/os/LogStream.h> // for yError()
 
 //behavior trees imports
-#include <yarp_bt_condition_module.h>   // for YARPBTConditionModule
+#include <yarp_bt_condition_module.h>   // for YARPBTConditionTickable
 
-class MyCondition : public YARPBTConditionModule
+class MyCondition : public YARPBTConditionTickable
 {
 public:
     bool is_proposition_true;
-    MyCondition(std::string name) : YARPBTConditionModule(name)
+    MyCondition(std::string name) : YARPBTConditionTickable(name)
     {
         is_proposition_true = false;
     }
@@ -46,8 +45,6 @@ public:
         }
     }
 };
-
-
 
 
 int main(int argc, char * argv[])
@@ -84,9 +81,13 @@ int main(int argc, char * argv[])
               << std::endl;
 
 
-    /* create your module */
-    MyCondition module("ConditionExample");
+    /* create your tickable node */
+    MyCondition node("ConditionExample");
+    node.configure();
 
-    module.runModule(rf);
+    while (true)
+    {
+        std::this_thread::sleep_for( std::chrono::milliseconds(100));
+    }
     return 0;
 }

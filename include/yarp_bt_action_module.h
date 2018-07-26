@@ -8,19 +8,17 @@
  * @file yarp_bt_module.h
  * @authors: Michele Colledanchise <michele.colledanchise@iit.it>
  */
-#ifndef YARPBTActionModule_H
-#define YARPBTActionModule_H
+#pragma once
+
 #include "yarp_bt_module.h"
 
 
-class YARPBTActionModule : public YARPBTModule
+class YARPBTActionTickable : public YARPBTTickable
 {
 public:
-    YARPBTActionModule(std::string name) : YARPBTModule(name)   {}
+    YARPBTActionTickable(std::string name) : YARPBTTickable(name)   {}
     virtual int tick() = 0;
     virtual void halt() = 0;
 
 };
 
-
-#endif // YARPBTActionModule_H

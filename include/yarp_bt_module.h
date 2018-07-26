@@ -8,8 +8,8 @@
  * @file yarp_bt_module.h
  * @authors: Michele Colledanchise <michele.colledanchise@iit.it>
  */
-#ifndef YARPBTModule_H
-#define YARPBTModule_H
+#pragma once
+
 #include "yarp/os/RFModule.h"
 #include "yarp/os/Port.h"
 #include "mutex"
@@ -17,15 +17,13 @@
 #include <mutex>
 #include <thread>
 
-class YARPBTModule : public BTCmd, public yarp::os::RFModule
+class YARPBTTickable : public BTCmd//, public yarp::os::RFModule
 {
 public:
-    YARPBTModule(std::string name);
-    //inherited from RFModule
+    YARPBTTickable(std::string name);
     bool attach(yarp::os::Port &source);
-    bool configure( yarp::os::ResourceFinder &rf );
-    bool updateModule();
-    bool close();
+    bool configure();
+
     //Thrift services inherited from BTCmd
     int32_t request_tick();
     int32_t request_status();
@@ -80,5 +78,3 @@ private:
     void set_status(int32_t new_status);
     std::thread execute_tick_thread_;
 };
-
-#endif // YARPBTModule_H

@@ -8,18 +8,16 @@
  * @file yarp_bt_module.h
  * @authors: Michele Colledanchise <michele.colledanchise@iit.it>
  */
-#ifndef YARPBTConditionModule_H
-#define YARPBTConditionModule_H
+#pragma once
 #include "yarp_bt_module.h"
 
 
-class YARPBTConditionModule : public YARPBTModule
+class YARPBTConditionTickable : public YARPBTTickable
 {
 public:
-    YARPBTConditionModule(std::string name) : YARPBTModule(name) {}
+    YARPBTConditionTickable(std::string name) : YARPBTTickable(name) {}
     virtual int tick() = 0;
     void halt() { }
 
 };
 
-#endif // YARPBTConditionModule_H
