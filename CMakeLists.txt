@@ -12,16 +12,21 @@ cmake_minimum_required(VERSION 2.8)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+##########################################################
+## ENABLE C++11 and thread
+##########################################################
 
-#########################################################
-# ENABLE C++11
-#########################################################
-include(CheckCXXCompilerFlag)
-unset(CXX11_FLAGS)
-check_cxx_compiler_flag("-std=c++11" CXX_HAS_STD_CXX11)
-if(CXX_HAS_STD_CXX11)
-  set(CXX11_FLAGS "-std=c++11")
-endif()
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
+
+##########################################################
+## ENABLE C++11
+##########################################################
+#include(CheckCXXCompilerFlag)
+#unset(CXX11_FLAGS)
+#check_cxx_compiler_flag("-std=c++11" CXX_HAS_STD_CXX11)
+#if(CXX_HAS_STD_CXX11)
+#  set(CXX11_FLAGS "-std=c++11")
+#endif()
 
 #########################################################
 # FIND YARP

@@ -17,8 +17,8 @@ class YARPBTConditionModule : public YARPBTModule
 {
 public:
     YARPBTConditionModule(std::string name) : YARPBTModule(name) {}
-    virtual int Tick() = 0;
-    void Halt() { }
+    virtual int tick() = 0;
+    void halt() { }
 
 };
 

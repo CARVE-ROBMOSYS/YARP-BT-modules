@@ -25,15 +25,16 @@
 class MyAction : public YARPBTActionModule
 {
 public:
+    bool action_has_succeded;
     MyAction(std::string name) : YARPBTActionModule(name)
     {
-
+        action_has_succeded = false;
     }
     ~MyAction(){}
 
-    int Tick()
+    int tick()
     {
-        std::cout << "The Action is peforming some atomic operations" << std::endl;
+        std::cout << "The Action is peforming some atomic operations. Waiting 5 seconds." << std::endl;
         std::this_thread::sleep_for( std::chrono::seconds(5) );
 
         /*to make the action preemptable, it is preferable to add checks between atomic operations
@@ -42,11 +43,11 @@ public:
 
         if(is_halt_requested())
         {
-            std::cout << "The Action is no longer required. Execution stopped here" << std::endl;
+            std::cout << "The Action is no longer required. Execution stopped here." << std::endl;
             return BT_HALTED; //this return value is not really read. Just for consistency
         }
 
-        std::cout << "The Action is peforming some other atomic operations" << std::endl;
+        std::cout << "The Action is peforming some other atomic operations. Waiting 5 seconds" << std::endl;
         std::this_thread::sleep_for( std::chrono::seconds(5) );
 
         if(is_halt_requested())
@@ -55,32 +56,34 @@ public:
             return BT_HALTED; //this return value is not really read. Just for consistency
         }
 
-        std::cout << "The Action is peforming the last atomic operations" << std::endl;
+        std::cout << "The Action is peforming the last atomic operations. Waiting 10 seconds" << std::endl;
 
         // after the action has performed its last operation, it defines if the action has succeded or not.
-        bool action_has_succeded = true;
-        std::this_thread::sleep_for( std::chrono::seconds(30) );
+        std::this_thread::sleep_for( std::chrono::seconds(10) );
 
         if(is_halt_requested())
         {
-            std::cout << "The Action is no longer required. Execution stopped here" << std::endl;
+            std::cout << "The Action is no longer required. Execution stopped here." << std::endl;
             return BT_HALTED; //this return value is not really read. Just for consistency
         }
 
         // return the status to the parent according to action_has_succeded
+        action_has_succeded = !action_has_succeded; //inverting previous return (as example)
+
         if(action_has_succeded)
         {
-            std::cout << "The Action has succeeded" << std::endl;
+            std::cout << "The Action has succeeded." << std::endl;
+
             return BT_SUCCESS;
         }
         else
         {
-            std::cout << "The Action has failed" << std::endl;
+            std::cout << "The Action has failed." << std::endl;
             return BT_FAILURE;
         }
     }
 
-    void Halt()
+    void halt()
     {
         std::cout << "The Action is performing its Halt routine" << std::endl;
         std::this_thread::sleep_for( std::chrono::seconds(1) );

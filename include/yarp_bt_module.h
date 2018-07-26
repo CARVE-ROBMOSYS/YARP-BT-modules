@@ -14,6 +14,9 @@
 #include "yarp/os/Port.h"
 #include "mutex"
 #include <BTCmd.h>
+#include <mutex>
+#include <thread>
+
 class YARPBTModule : public BTCmd, public yarp::os::RFModule
 {
 public:
@@ -23,23 +26,20 @@ public:
     bool configure( yarp::os::ResourceFinder &rf );
     bool updateModule();
     bool close();
-    //Thrift services inherited from BehaviorTreeCmds
+    //Thrift services inherited from BTCmd
     int32_t request_tick();
     int32_t request_status();
 
-    void request_halt();
+
+
 
 
     //Tick and Halt routine implemented by the user.
-    virtual int Tick() = 0;
-    virtual void Halt() = 0;
+    virtual int tick() = 0;
+    virtual void halt() = 0;
 
 
 
-
-    //getters and setters for is_halted and is_running
-    bool is_halt_requested();
-    bool is_tick_requested();
     /* Enumerates the states every node can be in after execution during a particular
      * time step:
      * - "BT_SUCCESS" indicates that the node has completed running during this time step;
@@ -54,48 +54,31 @@ public:
      * - "BT_RUNNING" indicates that the node has successfully moved forward during this
      *   time step, but the task is not yet complete;
      * - "BT_IDLE" indicates that the node hasn't run yet.
-     * - "BT_HALTED" indicates that the node has been halted by its father.
-     * - "BT_EXIT" indicates the tree is going to be destroyied but is still wait for some nodes.*/
-    enum ReturnStatus {BT_RUNNING, BT_SUCCESS, BT_FAILURE, BT_IDLE, BT_HALTED, BT_EXIT};
-    int32_t get_status();
-    void set_status(int32_t status);
-    void halt_requested(bool is_halt_requested);
-    void tick_requested(bool is_tick_requested);
+     * - "BT_HALTED" indicates that the node has been halted by its parent.
+     * - "BT_ERROR" indicates the something wring happened.*/
+
+    enum ReturnStatus {BT_RUNNING, BT_SUCCESS, BT_FAILURE, BT_IDLE, BT_HALTED, BT_ERROR};
+
+    // auxiliary functions
+    void set_halt_requested(bool is_halt_requested);
+    bool is_halt_requested(); // needed to let the node know that it cannot continue to execute code in the tick function
+    void request_halt();
+    void executeTick();
 
 private:
     yarp::os::Port cmd_port_;
     std::string module_name_;
-    bool is_halted_;
-    std::mutex is_halted_mutex_;
+
     bool is_halt_requested_;
     std::mutex is_halt_requested_mutex_;
-    bool is_tick_requested_;
-    std::mutex is_tick_requested_mutex_;
-    bool is_running_;
-    std::mutex is_running_mutex_;
+
     std::mutex status_mutex_;
     int32_t status_;
-    bool is_paused_;
-    double wait_for_;
-};
 
 
-class YARPBTAction : public YARPBTModule
-{
-public:
-    YARPBTAction(std::string name) : YARPBTModule(name)   {}
-    virtual int Tick() = 0;
-    virtual void Halt() = 0;
-
-};
-
-class YARPBTCondition : public YARPBTModule
-{
-public:
-    YARPBTCondition(std::string name) : YARPBTModule(name) {}
-    virtual int Tick() = 0;
-    void Halt() { }
-
+    int32_t get_status();
+    void set_status(int32_t new_status);
+    std::thread execute_tick_thread_;
 };
 
 #endif // YARPBTModule_H

@@ -17,8 +17,8 @@ class YARPBTActionModule : public YARPBTModule
 {
 public:
     YARPBTActionModule(std::string name) : YARPBTModule(name)   {}
-    virtual int Tick() = 0;
-    virtual void Halt() = 0;
+    virtual int tick() = 0;
+    virtual void halt() = 0;
 
 };
 

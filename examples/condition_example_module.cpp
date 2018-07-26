@@ -23,17 +23,17 @@
 class MyCondition : public YARPBTConditionModule
 {
 public:
+    bool is_proposition_true;
     MyCondition(std::string name) : YARPBTConditionModule(name)
     {
-
+        is_proposition_true = false;
     }
     ~MyCondition() {}
-    int Tick()
+    int tick()
     {
         std::cout << "The Condition is verifying a proposition" << std::endl;
         // return the status to the parent according to action_has_succeded
-
-        bool is_proposition_true = true;
+        is_proposition_true = !is_proposition_true;
         if(is_proposition_true)
         {
             std::cout << "The Condition has succeeded" << std::endl;
