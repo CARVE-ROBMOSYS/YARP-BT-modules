@@ -71,7 +71,14 @@ target_link_libraries(YARP_tickable ${YARP_LIBRARIES})
 # add_executable(condition_example_module examples/condition_example_module.cpp ${YARP_BT_MODULES_SRC})
 # target_link_libraries(condition_example_module ${YARP_LIBRARIES} )
 
+#####################################################
+# Building Examples about lib
+#####################################################
 
+add_executable(client_example examples/client_example.cpp  ${YARP_TICK_LIB_SRC})
+target_link_libraries(client_example ${YARP_LIBRARIES} )
 
+add_executable(server_example examples/server_example.cpp  ${YARP_TICK_LIB_SRC})
+target_link_libraries(server_example ${YARP_LIBRARIES} )
 
 
