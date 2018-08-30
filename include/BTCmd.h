@@ -14,6 +14,7 @@
 
 #include <yarp/os/Wire.h>
 #include <yarp/os/idl/WireTypes.h>
+#include <ReturnStatus.h>
 
 class BTCmd;
 
@@ -21,9 +22,9 @@ class BTCmd;
 class BTCmd : public yarp::os::Wire {
 public:
   BTCmd();
-  virtual std::int32_t request_tick();
-  virtual std::int32_t request_status();
-  virtual void request_halt();
+  virtual ReturnStatus request_tick(const std::string& params = "");
+  virtual ReturnStatus request_status();
+  virtual ReturnStatus request_halt();
   virtual bool read(yarp::os::ConnectionReader& connection) override;
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

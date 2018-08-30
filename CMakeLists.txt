@@ -33,42 +33,52 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
 #########################################################
 find_package(YARP REQUIRED)
 
-
-# pick up YARP find scripts
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
-
-
 #########################################################
 # GENERATING FILES FOR BEHAVIOR TREE'S THRIFT COMMANDS
 #########################################################
 set(generated_libs_dir "${CMAKE_CURRENT_SOURCE_DIR}")
-yarp_idl_to_dir(BTCmd.thrift ${generated_libs_dir}
-    sources headers include_dirs)
+yarp_idl_to_dir(BTCmd.thrift ${generated_libs_dir}  sources headers include_dirs)
 
+message("sources ${sources}")
 
-include_directories(${CMAKE_SOURCE_DIR}
-                    ${YARP_INCLUDE_DIRS}
-                    )
-
+include_directories(${CMAKE_SOURCE_DIR} )
 include_directories(${PROJECT_SOURCE_DIR}/include/)
 
 
+# set(YARP_BT_MODULES_SRC src/yarp_bt_module.cpp
+#                         src/BTCmd.cpp
+#                         src/ReturnStatus.cpp)
 
-set(YARP_BT_MODULES_SRC
-${PROJECT_SOURCE_DIR}/src/yarp_bt_module.cpp
-${PROJECT_SOURCE_DIR}/src/BTCmd.cpp)
+set(YARP_TICK_LIB_SRC   ${sources}
+                        src/tick_server.cpp
+                        src/tick_client.cpp)
 
 
 #####################################################
-#Building Executables
+# Building library
 #####################################################
-add_executable(action_example_module examples/action_example_module.cpp  ${YARP_BT_MODULES_SRC})
-target_link_libraries(action_example_module ${YARP_LIBRARIES} )
+
+add_library(YARP_tickable SHARED ${YARP_TICK_LIB_SRC})
+target_link_libraries(YARP_tickable ${YARP_LIBRARIES})
 
 
-add_executable(condition_example_module examples/condition_example_module.cpp ${YARP_BT_MODULES_SRC})
-target_link_libraries(condition_example_module ${YARP_LIBRARIES} )
+#####################################################
+# Building Executables
+#####################################################
+# add_executable(action_example_module examples/action_example_module.cpp  ${YARP_BT_MODULES_SRC})
+# target_link_libraries(action_example_module ${YARP_LIBRARIES} )
+#
+# add_executable(condition_example_module examples/condition_example_module.cpp ${YARP_BT_MODULES_SRC})
+# target_link_libraries(condition_example_module ${YARP_LIBRARIES} )
 
+#####################################################
+# Building Examples about lib
+#####################################################
 
+add_executable(client_example examples/client_example.cpp  ${YARP_TICK_LIB_SRC})
+target_link_libraries(client_example ${YARP_LIBRARIES} )
+
+add_executable(server_example examples/server_example.cpp  ${YARP_TICK_LIB_SRC})
+target_link_libraries(server_example ${YARP_LIBRARIES} )
 
 
