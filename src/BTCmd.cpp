@@ -220,7 +220,7 @@ bool BTCmd::read(yarp::os::ConnectionReader& connection) {
     if (reader.noMore()) { reader.fail(); return false; }
     std::string next_tag = reader.readTag();
     if (next_tag=="") break;
-    tag = tag + "_" + next_tag;
+    tag.append("_").append(next_tag);
   }
   return false;
 }
@@ -229,30 +229,30 @@ std::vector<std::string> BTCmd::help(const std::string& functionName) {
   bool showAll=(functionName=="--all");
   std::vector<std::string> helpString;
   if(showAll) {
-    helpString.push_back("*** Available commands:");
-    helpString.push_back("request_tick");
-    helpString.push_back("request_status");
-    helpString.push_back("request_halt");
-    helpString.push_back("help");
+    helpString.emplace_back("*** Available commands:");
+    helpString.emplace_back("request_tick");
+    helpString.emplace_back("request_status");
+    helpString.emplace_back("request_halt");
+    helpString.emplace_back("help");
   }
   else {
     if (functionName=="request_tick") {
-      helpString.push_back("ReturnStatus request_tick(const std::string& params = \"\") ");
+      helpString.emplace_back("ReturnStatus request_tick(const std::string& params = \"\") ");
     }
     if (functionName=="request_status") {
-      helpString.push_back("ReturnStatus request_status() ");
+      helpString.emplace_back("ReturnStatus request_status() ");
     }
     if (functionName=="request_halt") {
-      helpString.push_back("ReturnStatus request_halt() ");
+      helpString.emplace_back("ReturnStatus request_halt() ");
     }
     if (functionName=="help") {
-      helpString.push_back("std::vector<std::string> help(const std::string& functionName=\"--all\")");
-      helpString.push_back("Return list of available commands, or help message for a specific function");
-      helpString.push_back("@param functionName name of command for which to get a detailed description. If none or '--all' is provided, print list of available commands");
-      helpString.push_back("@return list of strings (one string per line)");
+      helpString.emplace_back("std::vector<std::string> help(const std::string& functionName=\"--all\")");
+      helpString.emplace_back("Return list of available commands, or help message for a specific function");
+      helpString.emplace_back("@param functionName name of command for which to get a detailed description. If none or '--all' is provided, print list of available commands");
+      helpString.emplace_back("@return list of strings (one string per line)");
     }
   }
-  if ( helpString.empty()) helpString.push_back("Command not found");
+  if ( helpString.empty()) helpString.emplace_back("Command not found");
   return helpString;
 }
 

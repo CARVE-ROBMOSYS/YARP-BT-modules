@@ -22,7 +22,7 @@ TickServer::TickServer()
     status_ = BT_IDLE;
 }
 
-bool TickServer::configure(std::string name, bool threaded)
+bool TickServer::configure_tick_server(std::string name, bool threaded)
 {
     module_name_ = name;
     threaded_ = threaded;

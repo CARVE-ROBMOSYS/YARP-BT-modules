@@ -29,11 +29,11 @@ class TickServer : public BTCmd
 public:
     TickServer();
 
-    bool attach(yarp::os::Port &source);
+    bool attach_tick_server(yarp::os::Port &source);
 
     // threaded: when ticked, the execute_tick function will be called in a separated thread.
     //           Use this only if you know the tick function contains blocking calls.
-    bool configure(std::string name, bool threaded=false);
+    bool configure_tick_server(std::string name, bool threaded=false);
 
     // On the server side, the request_tick function implements a bit of logic to actually execute the tick
     // only when the status is either idle or halted, otherwise it will immediately return running.

@@ -69,7 +69,7 @@ int main(int argc, char * argv[])
     }
 
     MySkillClass skill;
-    skill.configure("/tick_Y1");
+    skill.configure_tick_server("/tick_Y1");
 /*
     std::cout << "Action ready. To send commands to the action, open and type: yarp rpc /ActionExample/cmd,"
               <<" then type help to find the available commands "
