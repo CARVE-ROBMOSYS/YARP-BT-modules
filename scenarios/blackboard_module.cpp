@@ -29,7 +29,7 @@ class BlackBoard : public RFModule, public TickServer
 {
 
 private:
-    std::map<std::string, std::string> bb;
+    std::map<std::string, Value> bb;
     yarp::os::Port blackboard_port; // a bb port to handle messages
 
 public:
@@ -37,11 +37,11 @@ public:
     {
         ReturnStatus ret;
 
-        if (get(params) == "True")
+        if (get(params).asString() == "True")
         {
             ret = BT_SUCCESS;
         }
-        else if (get(params) == "False")
+        else if (get(params).asString() == "False")
         {
             ret = BT_FAILURE;
         }
@@ -69,12 +69,12 @@ public:
         return ret;
     }
 
-    bool set(std::string key, std::string value)
+    bool set(std::string key, Value value)
     {
         bb[key] = value;
     }
 
-    std::string  get(std::string key)
+    Value  get(std::string key)
     {
         return bb[key];
     }
@@ -97,10 +97,10 @@ public:
         {
             //request to set a value on the blackboard
 
-            std::string key, value;
+            std::string key;
 
             key  = command.get(1).asString();
-            value = command.get(2).asString();
+            Value value = command.get(2);
             set(key,value);
             reply.addInt(1);//TODO add sanity check here
 
@@ -109,17 +109,21 @@ public:
         {
             //request to get a value from the blackboard
 
-            std::string key, value;
+            std::string key;
+            Value value;
 
             key  = command.get(1).asString();
             value = get(key);
-            reply.addString(value);
+
+            reply.add(value);
         }
         else
         {
             yError("[Blackboard module] Command %s not recognized", command.get(0).asString().c_str());
             return false;
         }
+
+        std::cout << "reply" << reply.toString() << std::endl;
 
         return true;
     }
@@ -175,10 +179,10 @@ int main(int argc, char * argv[])
 
     // initialize blackboard
 
-    blackboard.set("BottleGrasped", "False");
-    blackboard.set("InvPoseComputed", "False");
-    blackboard.set("InvPoseValid", "False");
-    blackboard.set("InvPose", "False");
+    blackboard.set("BottleGrasped", Value("False"));
+    blackboard.set("InvPoseComputed", Value("False"));
+    blackboard.set("InvPoseValid", Value("False"));
+    blackboard.set("InvPose", Value("False"));
 
 
     blackboard.runModule(rf);

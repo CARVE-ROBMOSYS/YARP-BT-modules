@@ -34,21 +34,16 @@ private:
 public:
     ReturnStatus request_tick(const std::string& params = "") override
     {
-        request.clear();
+        cmd.clear();
         response.clear();
         ReturnStatus ret;
         if(params == "AtInvPose")
         {
-
-
             cmd.addString("get");
             cmd.addString("InvPose");
-
-
             blackboard_port.write(cmd,response);
-
-
             std::string inv_pose =  response.get(0).asString();
+            yInfo() << "InvPose is" << inv_pose;
             // code to check if the robot is in a neigborhood of the inv_pose.
             ret = BT_SUCCESS;
         }
