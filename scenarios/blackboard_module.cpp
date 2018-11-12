@@ -129,7 +129,7 @@ public:
            // optional, attach a port to the module
            // so that messages received from the port are redirected
            // to the respond method
-           blackboard_port.open("/inv_pose_request:i");
+           blackboard_port.open("/blackboard/rpc:i");
            attach(blackboard_port);
            return true;
        }
@@ -164,7 +164,7 @@ int main(int argc, char * argv[])
     rf.configure(argc, argv);
 
     BlackBoard blackboard;
-    blackboard.configure_tick_server("/blackboard:tick");
+    blackboard.configure_tick_server("/blackboard");
 
 
 /*
