@@ -117,9 +117,26 @@ public:
 
             reply.add(value);
         }
+        else if (command.get(0).asString() == "help")
+        {
+            reply.addVocab(Vocab::encode("many"));
+            reply.add(Value("Accepted commands are: "));
+            reply.add(Value("set <entryName> <entryValue>  -- entries are stored as yarp::os::Value"));
+            reply.addString("get <entryName>  -- entries are returned as yarp::os::Value");
+            reply.addString("list  -- prints all stored values");
+        }
+        else if (command.get(0).asString() == "list")
+        {
+            reply.addVocab(Vocab::encode("many"));
+
+            for(auto entry : bb)
+            {
+                reply.addString(entry.first + " : " + entry.second.toString() + "   ");
+            }
+        }
         else
         {
-            yError("[Blackboard module] Command %s not recognized", command.get(0).asString().c_str());
+            yError("[Blackboard module] Command %s not recognized. Call 'help' for a list of supported commands", command.get(0).asString().c_str());
             return false;
         }
 
