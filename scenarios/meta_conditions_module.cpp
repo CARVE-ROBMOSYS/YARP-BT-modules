@@ -5,7 +5,7 @@
  *                                                                            *
  ******************************************************************************/
 /**
- * @file condition_example_module.cpp
+ * @file meta_conditions_module.cpp
  * @authors: Michele Colledanchise <michele.colledanchise@iit.it>
  *           Alberto Cardellino <alberto.cardellino@iit.it>
  */
@@ -45,14 +45,27 @@ public:
             std::string inv_pose =  response.get(0).asString();
             yInfo() << "InvPose is" << inv_pose;
             // code to check if the robot is in a neigborhood of the inv_pose.
+            // **TODO** read from the localization system the robot's positon  check if the robot is in a neigborhood of the inv_pose.
+            yError()<< "Node not yet implemented";
+
             ret = BT_SUCCESS;
         }
-        else if( params == "BottleLocated" )
+        else if( params == "BottleLocatedWithConfidenceX" )
         {
             //we assume is always located located
+            // **TODO** Implement this
+            yError()<< "Node not yet implemented";
             ret = BT_SUCCESS;
         }
-        else ret = BT_ERROR;
+//        else if()
+//        {
+
+//        }
+        else
+        {
+            ret = BT_ERROR;
+            yError()<< "Node "<< params << "not implemented";
+        }
         ReturnStatusVocab a;
         yInfo() << "Request_tick got  params " << params << " replying with " << a.toString((int)ret);
         std::this_thread::sleep_for( std::chrono::seconds(3));
