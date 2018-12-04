@@ -27,7 +27,7 @@
 using namespace yarp::os;
 using namespace yarp::dev;
 
-class moveJoint_module : public RFModule, public TickServer
+class moveJoint_module : public TickServer, public RFModule
 {
 private:
     PolyDriver  headDev;

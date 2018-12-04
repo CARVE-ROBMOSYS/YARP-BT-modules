@@ -25,7 +25,7 @@
 
 using namespace yarp::os;
 
-class BlackBoard : public RFModule, public TickServer
+class BlackBoard : public TickServer, public RFModule
 {
 
 private:
@@ -204,7 +204,7 @@ int main(int argc, char * argv[])
     blackboard.set("BottleGrasped", Value("False"));
     blackboard.set("InvPoseComputed", Value("False"));
     blackboard.set("InvPoseValid", Value("False"));
-    blackboard.set("InvPose", Value("False"));
+    blackboard.set("InvPose", Value("000000"));
 
 
     blackboard.runModule(rf);
