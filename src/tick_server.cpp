@@ -109,6 +109,12 @@ ReturnStatus TickServer::request_status()
     return status_;
 }
 
+
+void TickServer::set_status(ReturnStatus status)
+{
+    status_ = status;
+}
+
 // Used by the skill to self-set error state
 void TickServer::setErrorState(bool error)
 {

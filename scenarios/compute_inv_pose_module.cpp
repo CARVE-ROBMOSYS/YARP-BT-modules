@@ -29,19 +29,28 @@ using namespace yarp::dev;
 
 class ComputeInvPose : public TickServer
 {
+private:
+    Bottle cmd, response;
+public:
+    yarp::os::Port blackboard_port;
+
 public:
     ReturnStatus execute_tick(const std::string& params = "") override
     {
+        set_status(BT_RUNNING);
 
-
-        //std::this_thread::sleep_for( std::chrono::seconds(3));
-        yInfo() << "requested tick with param " << params << " returning ";
+        yInfo() << "[ComputeInvPose] Action started";
+        std::string inv_pose = "123456";
+        cmd.clear();
+        response.clear();
+        cmd.addString("set");
+        cmd.addString("InvPose");
+        cmd.addString(inv_pose);
+        blackboard_port.write(cmd,response);
+        yInfo() << "ComputeInvPose InvPose is set to" << inv_pose;
+        set_status(BT_SUCCESS);
         return BT_SUCCESS;
     }
-
-
-
-
 };
 
 int main(int argc, char * argv[])
@@ -59,12 +68,12 @@ int main(int argc, char * argv[])
 
     rf.configure(argc, argv);
 
-    ComputeInvPose module;
-    module.configure_tick_server("/ComputeInvPose");
-
+    ComputeInvPose skill;
+    skill.configure_tick_server("/ComputeInvPose");
+    skill.blackboard_port.open("/ComputeInvPose/blackboard/rpc:o");
     // initialize blackboard
 
-    module.runModule(rf);
+    skill.runModule(rf);
 
     return 0;
 }

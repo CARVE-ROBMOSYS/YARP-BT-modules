@@ -41,7 +41,12 @@ public:
     // only when the status is either idle or halted, otherwise it will immediately return running.
     // Re-implement this function in case this helper logic is not required.
     virtual ReturnStatus request_tick(const std::string& params = "");
+
+
+    // implementation of Thrift command request_status
     ReturnStatus request_status();
+
+    void set_status(ReturnStatus status);
 //    ReturnStatus request_halt();
 
     // Request_tick will call this function when a meaningful tick is called, i.e. current status is

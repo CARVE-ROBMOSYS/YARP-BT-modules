@@ -165,23 +165,24 @@ public:
         return ret;
     }
 
-    double getPeriod()
-    {
-        // module periodicity (seconds), called implicitly by the module.
-        return 1.0;
-    }
-    // This is our main function. Will be called periodically every getPeriod() seconds
-    bool updateModule()
-    {
-        //cout << "[" << count << "]" << " updateModule..." << endl;
-        return true;
-    }
-    // Message handler. Just echo all received messages.
-    bool respond(const Bottle& command, Bottle& reply)
-    {
+    // **TODO** double-check with Alberto if it is OK to comment the code below
+//    double getPeriod()
+//    {
+//        // module periodicity (seconds), called implicitly by the module.
+//        return 1.0;
+//    }
+//    // This is our main function. Will be called periodically every getPeriod() seconds
+//    bool updateModule()
+//    {
+//        //cout << "[" << count << "]" << " updateModule..." << endl;
+//        return true;
+//    }
+//    // Message handler. Just echo all received messages.
+//    bool respond(const Bottle& command, Bottle& reply)
+//    {
 
-        return true;
-    }
+//        return true;
+//    }
 
     bool configure(yarp::os::ResourceFinder &rf)
    {
@@ -212,17 +213,18 @@ public:
         return true;
    }
 
-    bool interruptModule()
-    {
-        return true;
-    }
+    // **TODO** double-check with Alberto if it is OK to comment the code below
+//    bool interruptModule()
+//    {
+//        return true;
+//    }
 
-    // Close function, to perform cleanup.
-    bool close()
-    {
-        // optional, close port explicitly
-        return true;
-    }
+//    // Close function, to perform cleanup.
+//    bool close()
+//    {
+//        // optional, close port explicitly
+//        return true;
+//    }
 
 };
 
