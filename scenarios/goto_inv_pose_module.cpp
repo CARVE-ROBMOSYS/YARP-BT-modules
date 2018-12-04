@@ -38,7 +38,7 @@ using namespace yarp::os;
 using namespace yarp::dev;
 using namespace std;
 
-class GotoInvPose : public TickServer
+class GotoInvPose : public TickServer, public RFModule
 {
 private:
     Bottle cmd, response;
@@ -67,7 +67,7 @@ public:
         yInfo() << "[GotoInvPose] Going to" << inv_pose;
 
 
-        iNav->gotoTargetByAbsoluteLocation(2.0, 0.0, 0.0);
+        iNav->gotoTargetByLocationName(inv_pose); // TODO make a real implementation of it
 
         while(true)
         {
@@ -84,10 +84,10 @@ public:
         return BT_SUCCESS;
     }
 
-    void execute_halt(const std::string& params = "") override
+    void execute_halt() override
     {
         iNav->stopNavigation();
-        yInfo() << "[GotoInvPose] Going to" << inv_pose;
+        yInfo() << "[GotoInvPose] Halted" ;
 
     }
 
@@ -112,13 +112,26 @@ public:
             yError() << "Unable to open INavigation2D interface";
         }
 
-
-
-        TickServer::configure(rf);
         return true;
     }
 
+    double getPeriod()
+    {
+        // module periodicity (seconds), called implicitly by the module.
+        return 1.0;
+    }
+    // This is our main function. Will be called periodically every getPeriod() seconds
+    bool updateModule()
+    {
+        //cout << "[" << count << "]" << " updateModule..." << endl;
+        return true;
+    }
+    // Message handler. Just echo all received messages.
+    bool respond(const Bottle& command, Bottle& reply)
+    {
 
+        return true;
+    }
 
 
 };
