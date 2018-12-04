@@ -47,7 +47,7 @@ public:
     ReturnStatus request_status();
 
     void set_status(ReturnStatus status);
-//    ReturnStatus request_halt();
+    ReturnStatus request_halt();
 
     // Request_tick will call this function when a meaningful tick is called, i.e. current status is
     // either idle or halted. If this implementation has blocking calls, set threaded to true in
@@ -55,7 +55,7 @@ public:
     virtual ReturnStatus execute_tick(const std::string& params = "");
 
     // execute the halt of the node
-    virtual void execute_halt(const std::string& params = "");
+    virtual void execute_halt();
 
 
     // Check if halt was requested by the BT engine

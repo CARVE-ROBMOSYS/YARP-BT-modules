@@ -20,6 +20,7 @@
 TickServer::TickServer()
 {
     status_ = BT_IDLE;
+    is_halt_requested_ = false;
 }
 
 bool TickServer::configure_tick_server(std::string name, bool threaded)
@@ -80,6 +81,33 @@ ReturnStatus TickServer::request_tick(const std::string &params)
     return return_status;
 }
 
+
+ReturnStatus TickServer::request_halt()
+{
+    ReturnStatus return_status = status_;
+    switch (return_status)
+    {
+        case BT_ERROR:
+            yError("The BT node %s returned error", module_name_.c_str());
+            break;
+        case BT_RUNNING:
+            // nothing to do
+        execute_halt();
+            break;
+        case BT_SUCCESS:
+        case BT_FAILURE:
+        case BT_IDLE:
+        case BT_HALTED:
+        // nothing to do
+            break;
+        default:
+            break;
+    }
+
+    return return_status;
+}
+
+
 ReturnStatus TickServer::execute_tick(const std::string& params)
 {
     yTrace() << "Default dummy implementation. Please re-implement either this function or 'request_tick(...)' to do something meaningful";
@@ -87,7 +115,7 @@ ReturnStatus TickServer::execute_tick(const std::string& params)
 }
 
 
-void TickServer::execute_halt(const std::string& params)
+void TickServer::execute_halt()
 {
     yTrace() << "Default dummy implementation. Make sure you don't need to re-implement this functions!";
 }
