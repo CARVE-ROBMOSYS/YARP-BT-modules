@@ -49,6 +49,7 @@ private:
 
     //Gets the current navigation status
     NavigationStatusEnum status;
+
 public:
     yarp::os::Port blackboard_port;
 
@@ -63,12 +64,20 @@ public:
         cmd.addString("get");
         cmd.addString("InvPose");
         blackboard_port.write(cmd,response);
-        std::string inv_pose =  response.get(0).asString();
-        yInfo() << "[GotoInvPose] Going to" << inv_pose;
+        std::string inv_pose_str =  response.get(0).asString();
+        yInfo() << "[GotoInvPose] Going to" << inv_pose_str;
 
 
-        iNav->gotoTargetByLocationName(inv_pose); // TODO make a real implementation of it
+        std::string::size_type sz;     // alias of size_t
+        std::replace(inv_pose_str.begin(), inv_pose_str.end(), ',', ' ');  // replace ',' by ' '
 
+        vector<float> inv_pose_arr;
+        stringstream ss(inv_pose_str);
+        float temp;
+        while (ss >> temp)
+            inv_pose_arr.push_back(temp);
+
+        iNav->gotoTargetByRelativeLocation(inv_pose_arr[0],inv_pose_arr[1], inv_pose_arr[2]);
         while(true)
         {
             iNav->getNavigationStatus(status);
@@ -78,7 +87,7 @@ public:
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
-        yInfo() << "[GotoInvPose] " << inv_pose;
+        yInfo() << "[GotoInvPose] " << inv_pose_str;
 
         set_status(BT_SUCCESS);
         return BT_SUCCESS;
