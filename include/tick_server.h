@@ -44,10 +44,10 @@ public:
 
 
     // implementation of Thrift command request_status
-    ReturnStatus request_status();
+    virtual ReturnStatus request_status();
 
     void set_status(ReturnStatus status);
-    ReturnStatus request_halt();
+    virtual ReturnStatus request_halt();
 
     // Request_tick will call this function when a meaningful tick is called, i.e. current status is
     // either idle or halted. If this implementation has blocking calls, set threaded to true in
