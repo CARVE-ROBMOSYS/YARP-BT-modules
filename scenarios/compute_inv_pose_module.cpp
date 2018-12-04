@@ -46,7 +46,24 @@ public:
         cmd.addString("InvPose");
         cmd.addString(inv_pose);
         blackboard_port.write(cmd,response);
-        yInfo() << "ComputeInvPose InvPose is set to" << inv_pose;
+        yInfo() << "[ComputeInvPose] InvPose is set to" << inv_pose;
+
+        // writing on the blackboard that the inv pose is computed (to make the condition "is InvPoseComputed" simple)
+        cmd.clear();
+        response.clear();
+        cmd.addString("set");
+        cmd.addString("InvPoseCompured");
+        cmd.addInt(1);
+        blackboard_port.write(cmd,response);
+        // writing on the blackboard that the inv pose is valid (very bold assumption)
+        cmd.clear();
+        response.clear();
+        cmd.addString("set");
+        cmd.addString("InvPoseValid");
+        cmd.addInt(1);
+        blackboard_port.write(cmd,response);
+
+
         set_status(BT_SUCCESS);
         return BT_SUCCESS;
     }

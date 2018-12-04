@@ -57,10 +57,40 @@ public:
             yError()<< "Node not yet implemented";
             ret = BT_SUCCESS;
         }
-//        else if()
-//        {
+// Not used, we will tick directly the blackboard
 
+
+//        if(params == "BottleGrasped")
+//        {
+//            cmd.addString("get");
+//            cmd.addString("BottleGrasped");
+//            blackboard_port.write(cmd,response);
+//            bool bottle_grasped =  response.get(0).asBool();
+//            yInfo() << "BottleGrasped is" << bottle_grasped;
+//            ret = bottle_grasped ? BT_SUCCESS : BT_FAILURE;
 //        }
+
+//        if(params == "InvPoseComputed")
+//        {
+//            cmd.addString("get");
+//            cmd.addString("InvPoseComputed");
+//            blackboard_port.write(cmd,response);
+//            bool inv_pose_computed =  response.get(0).asBool();
+//            yInfo() << "InvPoseComputed is" << inv_pose_computed;
+//            ret = inv_pose_computed ? BT_SUCCESS : BT_FAILURE;
+//        }
+
+//        if(params == "InvPoseValid")
+//        {
+//            cmd.addString("get");
+//            cmd.addString("InvPoseValid");
+//            blackboard_port.write(cmd,response);
+//            bool inv_pose_valid =  response.get(0).asBool();
+//            yInfo() << "InvPoseValid is" << inv_pose_valid;
+//            ret = inv_pose_valid ? BT_SUCCESS : BT_FAILURE;
+//        }
+
+
         else
         {
             ret = BT_ERROR;
@@ -104,7 +134,7 @@ int main(int argc, char * argv[])
     skill.blackboard_port.open("/metaconditions/blackboard/rpc:o");
 
 /*
-    std::cout << "Action ready. To send commands to the action, open and type: yarp rpc /ActionExample/cmd,"
+    std::cout << "Action ready. To send commands to the action, open and type: yarp rpc /metaconditions/tick:i,"
               <<" then type help to find the available commands "
               << std::endl;
 */

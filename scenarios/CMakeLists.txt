@@ -18,3 +18,6 @@ target_link_libraries(compute_inv_pose_module ${YARP_LIBRARIES} )
 
 add_executable(goto_inv_pose_module goto_inv_pose_module.cpp ${YARP_TICK_LIB_SRC})
 target_link_libraries(goto_inv_pose_module ${YARP_LIBRARIES} )
+
+add_executable(set_inv_pose_invalid_module set_inv_pose_invalid_module.cpp ${YARP_TICK_LIB_SRC})
+target_link_libraries(set_inv_pose_invalid_module ${YARP_LIBRARIES} )
