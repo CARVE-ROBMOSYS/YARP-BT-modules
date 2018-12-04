@@ -25,7 +25,7 @@
 
 using namespace yarp::os;
 
-class BlackBoard : public RFModule, public TickServer
+class BlackBoard : public TickServer
 {
 
 private:

@@ -60,8 +60,8 @@ ReturnStatus TickServer::request_tick(const std::string &params)
                 execute_tick_thread_ = std::thread(&TickServer::execute_tick, this, params);
                 do
                 {
-                    // waiting for executeTick to start
-                    std::this_thread::sleep_for( std::chrono::milliseconds(100) );
+                    // waiting for execute_tick to start
+                    std::this_thread::sleep_for( std::chrono::milliseconds(100) ); // TODO make a sleep that waits for a status that is not HALTED (i.e. the thread has started)
                     return_status = status_;
                 }
                 while (return_status == BT_IDLE);
@@ -87,6 +87,11 @@ ReturnStatus TickServer::execute_tick(const std::string& params)
 }
 
 
+void TickServer::execute_halt(const std::string& params)
+{
+    yTrace() << "Default dummy implementation. Make sure you don't need to re-implement this functions!";
+}
+
 // Check if halt was requested by the BT engine
 bool TickServer::getHalted()
 {
@@ -99,6 +104,11 @@ void TickServer::setHalted(bool halted)
     is_halt_requested_ = halted;
 }
 
+ReturnStatus TickServer::request_status()
+{
+    return status_;
+}
+
 // Used by the skill to self-set error state
 void TickServer::setErrorState(bool error)
 {
@@ -107,3 +117,42 @@ void TickServer::setErrorState(bool error)
     else
         status_ = BT_IDLE;
 }
+
+
+
+
+double TickServer::getPeriod()
+{
+    // module periodicity (seconds), called implicitly by the module.
+    return 1.0;
+}
+// This is our main function. Will be called periodically every getPeriod() seconds
+bool TickServer::updateModule()
+{
+    //cout << "[" << count << "]" << " updateModule..." << endl;
+    return true;
+}
+// Message handler. Just echo all received messages.
+bool TickServer::respond(const Bottle& command, Bottle& reply)
+{
+
+    return true;
+}
+
+bool TickServer::configure(yarp::os::ResourceFinder &rf)
+{
+    return true;
+}
+
+bool TickServer::interruptModule()
+{
+    return true;
+}
+
+// Close function, to perform cleanup.
+bool TickServer::close()
+{
+    // optional, close port explicitly
+    return true;
+}
+
