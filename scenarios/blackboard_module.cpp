@@ -123,16 +123,21 @@ public:
             reply.add(Value("Accepted commands are: "));
             reply.add(Value("set <entryName> <entryValue>  -- entries are stored as yarp::os::Value"));
             reply.addString("get <entryName>  -- entries are returned as yarp::os::Value");
-            reply.addString("list  -- prints all stored values");
+            reply.addString("list   -- prints all stored entries");
+            reply.addString("clear  -- erase  all entries");
         }
         else if (command.get(0).asString() == "list")
         {
             reply.addVocab(Vocab::encode("many"));
-
             for(auto entry : bb)
             {
                 reply.addString(entry.first + " : " + entry.second.toString() + "   ");
             }
+        }
+        else if (command.get(0).asString() == "clear")
+        {
+            bb.clear();
+            reply.addInt(1);//TODO add sanity check here
         }
         else
         {
