@@ -1,8 +1,5 @@
-
-
-
 #####################################################
-# Building Executables for CARVE Scenario
+# Building Executables for CARVE Scenario 1
 #####################################################
 add_executable(blackboard_module blackboard_module.cpp ${YARP_TICK_LIB_SRC})
 target_link_libraries(blackboard_module ${YARP_LIBRARIES} )
@@ -15,3 +12,12 @@ target_link_libraries(move_joints_module ${YARP_LIBRARIES} )
 
 add_executable(compute_inv_pose_module compute_inv_pose_module.cpp ${YARP_TICK_LIB_SRC})
 target_link_libraries(compute_inv_pose_module ${YARP_LIBRARIES} )
+
+add_executable(goto_inv_pose_module goto_inv_pose_module.cpp ${YARP_TICK_LIB_SRC})
+target_link_libraries(goto_inv_pose_module ${YARP_LIBRARIES} )
+
+add_executable(set_inv_pose_invalid_module set_inv_pose_invalid_module.cpp ${YARP_TICK_LIB_SRC})
+target_link_libraries(set_inv_pose_invalid_module ${YARP_LIBRARIES} )
+
+add_executable(always_running_module always_running_module.cpp ${YARP_TICK_LIB_SRC})
+target_link_libraries(always_running_module ${YARP_LIBRARIES} )

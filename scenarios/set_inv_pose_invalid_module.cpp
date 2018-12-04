@@ -24,10 +24,11 @@
 //behavior trees imports
 #include <include/tick_server.h>
 
-using namespace yarp::os;
-using namespace yarp::dev;
 
-class ComputeInvPose : public TickServer, public RFModule
+using namespace yarp::os;
+using namespace std;
+
+class SetInvPoseInvalid : public TickServer
 {
 private:
     Bottle cmd, response;
@@ -38,55 +39,21 @@ public:
     ReturnStatus execute_tick(const std::string& params = "") override
     {
         set_status(BT_RUNNING);
-        yInfo() << "[ComputeInvPose] Action started";
-        std::string inv_pose = "123456";
-        cmd.clear();
-        response.clear();
-        cmd.addString("set");
-        cmd.addString("InvPose");
-        cmd.addString(inv_pose);
-        blackboard_port.write(cmd,response);
-        yInfo() << "[ComputeInvPose] InvPose is set to" << inv_pose;
 
-        // writing on the blackboard that the inv pose is computed (to make the condition "is InvPoseComputed" simple)
-        cmd.clear();
-        response.clear();
-        cmd.addString("set");
-        cmd.addString("InvPoseCompured");
-        cmd.addInt(1);
-        blackboard_port.write(cmd,response);
-        // writing on the blackboard that the inv pose is valid (very bold assumption)
+        yInfo() << "[GotoInvPose] Action started";
         cmd.clear();
         response.clear();
         cmd.addString("set");
         cmd.addString("InvPoseValid");
-        cmd.addInt(1);
+        cmd.addString("False");
         blackboard_port.write(cmd,response);
-
-
         set_status(BT_SUCCESS);
         return BT_SUCCESS;
     }
 
-    double getPeriod()
-    {
-        // module periodicity (seconds), called implicitly by the module.
-        return 1.0;
-    }
-    // This is our main function. Will be called periodically every getPeriod() seconds
-    bool updateModule()
-    {
-        //cout << "[" << count << "]" << " updateModule..." << endl;
-        return true;
-    }
-    // Message handler. Just echo all received messages.
-    bool respond(const Bottle& command, Bottle& reply)
-    {
-
-        return true;
-    }
 
 };
+
 
 int main(int argc, char * argv[])
 {
@@ -98,15 +65,19 @@ int main(int argc, char * argv[])
         return EXIT_FAILURE;
     }
 
+    SetInvPoseInvalid skill;
+    skill.configure_tick_server("/setInvPoseInvalid");
+    skill.blackboard_port.open("/setInvPoseInvalid/blackboard/rpc:o");
 
-    yarp::os::ResourceFinder rf;
-
-    rf.configure(argc, argv);
-
-    ComputeInvPose skill;
-    skill.configure_tick_server("/ComputeInvPose");
-    skill.blackboard_port.open("/ComputeInvPose/blackboard/rpc:o");
-    skill.runModule(rf);
-
+    /*
+        std::cout << "Action ready. To send commands to the action, open and type: yarp rpc /setInvPoseInvalid/tick:i,"
+                  <<" then type help to find the available commands "
+                  << std::endl;
+    */
+    while (true)
+    {
+        std::this_thread::sleep_for( std::chrono::seconds(10));
+        yInfo() << "Running";
+    }
     return 0;
 }
