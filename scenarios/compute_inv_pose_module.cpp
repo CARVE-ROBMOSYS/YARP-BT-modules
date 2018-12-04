@@ -27,31 +27,29 @@
 using namespace yarp::os;
 using namespace yarp::dev;
 
-class ComputeInvPose : public RFModule, public TickServer
+class ComputeInvPose : public TickServer, public RFModule
 {
+private:
+    Bottle cmd, response;
+public:
+    yarp::os::Port blackboard_port;
+
 public:
     ReturnStatus execute_tick(const std::string& params = "") override
     {
+        set_status(BT_RUNNING);
 
-        //std::this_thread::sleep_for( std::chrono::seconds(3));
-        yInfo() << "requested tick with param " << params << " returning " << ret;
-        return ret;
-    }
-
-    ReturnStatus request_status()
-    {
-        ReturnStatus ret = BT_RUNNING;
-        ReturnStatusVocab a;
-        yInfo() << "request_status, replying with " << a.toString(ret);
-        return ret;
-    }
-
-    ReturnStatus request_halt()
-    {
-        ReturnStatus ret = BT_HALTED;
-        ReturnStatusVocab a;
-        yInfo() << "request_halt,  replying with " << a.toString(ret);
-        return ret;
+        yInfo() << "[ComputeInvPose] Action started";
+        std::string inv_pose = "123456";
+        cmd.clear();
+        response.clear();
+        cmd.addString("set");
+        cmd.addString("InvPose");
+        cmd.addString(inv_pose);
+        blackboard_port.write(cmd,response);
+        yInfo() << "ComputeInvPose InvPose is set to" << inv_pose;
+        set_status(BT_SUCCESS);
+        return BT_SUCCESS;
     }
 
     double getPeriod()
@@ -72,23 +70,6 @@ public:
         return true;
     }
 
-    bool configure(yarp::os::ResourceFinder &rf)
-   {
-        return true;
-   }
-
-    bool interruptModule()
-    {
-        return true;
-    }
-
-    // Close function, to perform cleanup.
-    bool close()
-    {
-        // optional, close port explicitly
-        return true;
-    }
-
 };
 
 int main(int argc, char * argv[])
@@ -106,12 +87,12 @@ int main(int argc, char * argv[])
 
     rf.configure(argc, argv);
 
-    moveJoint_module blackboard;
-    blackboard.configure_tick_server("/ComputeInvPose");
-
+    ComputeInvPose skill;
+    skill.configure_tick_server("/ComputeInvPose");
+    skill.blackboard_port.open("/ComputeInvPose/blackboard/rpc:o");
     // initialize blackboard
 
-    blackboard.runModule(rf);
+    skill.runModule(rf);
 
     return 0;
 }

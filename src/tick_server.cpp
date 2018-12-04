@@ -20,6 +20,7 @@
 TickServer::TickServer()
 {
     status_ = BT_IDLE;
+    is_halt_requested_ = false;
 }
 
 bool TickServer::configure_tick_server(std::string name, bool threaded)
@@ -60,8 +61,8 @@ ReturnStatus TickServer::request_tick(const std::string &params)
                 execute_tick_thread_ = std::thread(&TickServer::execute_tick, this, params);
                 do
                 {
-                    // waiting for executeTick to start
-                    std::this_thread::sleep_for( std::chrono::milliseconds(100) );
+                    // waiting for execute_tick to start
+                    std::this_thread::sleep_for( std::chrono::milliseconds(100) ); // TODO make a sleep that waits for a status that is not HALTED (i.e. the thread has started)
                     return_status = status_;
                 }
                 while (return_status == BT_IDLE);
@@ -80,12 +81,44 @@ ReturnStatus TickServer::request_tick(const std::string &params)
     return return_status;
 }
 
+
+ReturnStatus TickServer::request_halt()
+{
+    ReturnStatus return_status = status_;
+    switch (return_status)
+    {
+        case BT_ERROR:
+            yError("The BT node %s returned error", module_name_.c_str());
+            break;
+        case BT_RUNNING:
+            // nothing to do
+        execute_halt();
+            break;
+        case BT_SUCCESS:
+        case BT_FAILURE:
+        case BT_IDLE:
+        case BT_HALTED:
+        // nothing to do
+            break;
+        default:
+            break;
+    }
+
+    return return_status;
+}
+
+
 ReturnStatus TickServer::execute_tick(const std::string& params)
 {
     yTrace() << "Default dummy implementation. Please re-implement either this function or 'request_tick(...)' to do something meaningful";
     return BT_ERROR;
 }
 
+
+void TickServer::execute_halt()
+{
+    yTrace() << "Default dummy implementation. Make sure you don't need to re-implement this functions!";
+}
 
 // Check if halt was requested by the BT engine
 bool TickServer::getHalted()
@@ -99,6 +132,17 @@ void TickServer::setHalted(bool halted)
     is_halt_requested_ = halted;
 }
 
+ReturnStatus TickServer::request_status()
+{
+    return status_;
+}
+
+
+void TickServer::set_status(ReturnStatus status)
+{
+    status_ = status;
+}
+
 // Used by the skill to self-set error state
 void TickServer::setErrorState(bool error)
 {
@@ -107,3 +151,5 @@ void TickServer::setErrorState(bool error)
     else
         status_ = BT_IDLE;
 }
+
+

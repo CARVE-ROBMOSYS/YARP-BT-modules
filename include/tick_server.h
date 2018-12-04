@@ -22,9 +22,11 @@
 #include <atomic>
 
 #include <yarp/os/LogStream.h>
+#include <yarp/os/RFModule.h>
 
+using namespace yarp::os;
 
-class TickServer : public BTCmd
+class TickServer :  public BTCmd
 {
 public:
     TickServer();
@@ -39,13 +41,22 @@ public:
     // only when the status is either idle or halted, otherwise it will immediately return running.
     // Re-implement this function in case this helper logic is not required.
     virtual ReturnStatus request_tick(const std::string& params = "");
-    virtual ReturnStatus request_status() = 0;
-    virtual ReturnStatus request_halt()   = 0;
+
+
+    // implementation of Thrift command request_status
+    ReturnStatus request_status();
+
+    void set_status(ReturnStatus status);
+    ReturnStatus request_halt();
 
     // Request_tick will call this function when a meaningful tick is called, i.e. current status is
     // either idle or halted. If this implementation has blocking calls, set threaded to true in
     // the configuration.
     virtual ReturnStatus execute_tick(const std::string& params = "");
+
+    // execute the halt of the node
+    virtual void execute_halt();
+
 
     // Check if halt was requested by the BT engine
     bool getHalted();
@@ -62,8 +73,7 @@ private:
 
     bool threaded_ {false};
     std::thread execute_tick_thread_;
-    ReturnStatus status_;
-
+    std::atomic<ReturnStatus> status_;
     std::atomic<bool> is_halt_requested_;
 };
 
