@@ -26,7 +26,7 @@
 
 using namespace yarp::os;
 
-class TickServer : public RFModule, public BTCmd
+class TickServer :  public BTCmd
 {
 public:
     TickServer();
@@ -66,24 +66,6 @@ public:
 
     // Used by the skill to self-set error state. If error is false, IDLE is set instead.
     void setErrorState(bool error);
-
-
-    // implement classes of RFModule
-    double getPeriod();
-    // This is our main function. Will be called periodically every getPeriod() seconds
-    bool updateModule();
-    // Message handler. Just echo all received messages.
-    bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
-    bool configure(yarp::os::ResourceFinder &rf);
-
-    bool interruptModule();
-
-    // Close function, to perform cleanup.
-    bool close();
-
-
-
-
 
 private:
     yarp::os::Port cmd_port_;

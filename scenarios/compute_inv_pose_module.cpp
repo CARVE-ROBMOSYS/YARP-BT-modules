@@ -27,7 +27,7 @@
 using namespace yarp::os;
 using namespace yarp::dev;
 
-class ComputeInvPose : public TickServer
+class ComputeInvPose : public TickServer, public RFModule
 {
 private:
     Bottle cmd, response;
@@ -51,6 +51,25 @@ public:
         set_status(BT_SUCCESS);
         return BT_SUCCESS;
     }
+
+    double getPeriod()
+    {
+        // module periodicity (seconds), called implicitly by the module.
+        return 1.0;
+    }
+    // This is our main function. Will be called periodically every getPeriod() seconds
+    bool updateModule()
+    {
+        //cout << "[" << count << "]" << " updateModule..." << endl;
+        return true;
+    }
+    // Message handler. Just echo all received messages.
+    bool respond(const Bottle& command, Bottle& reply)
+    {
+
+        return true;
+    }
+
 };
 
 int main(int argc, char * argv[])
