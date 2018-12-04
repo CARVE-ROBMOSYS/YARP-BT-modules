@@ -38,7 +38,6 @@ public:
     ReturnStatus execute_tick(const std::string& params = "") override
     {
         set_status(BT_RUNNING);
-
         yInfo() << "[ComputeInvPose] Action started";
         std::string inv_pose = "123456";
         cmd.clear();
@@ -71,8 +70,6 @@ int main(int argc, char * argv[])
     ComputeInvPose skill;
     skill.configure_tick_server("/ComputeInvPose");
     skill.blackboard_port.open("/ComputeInvPose/blackboard/rpc:o");
-    // initialize blackboard
-
     skill.runModule(rf);
 
     return 0;
