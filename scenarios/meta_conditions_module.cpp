@@ -34,8 +34,7 @@ public:
     yarp::os::Port blackboard_port; //todo make private
 
     // object localization
-    yarp::os::BufferedPort<Bottle> blob_extractor_port; //todo make private
-    RpcClient classifier_port; //todo make private
+    RpcClient object_properties_collector_port; //todo make private
 
 private:
     Bottle cmd, response;
@@ -135,72 +134,68 @@ public:
 
     ReturnStatus processObjectLocatedWithConfidenceX(const std::string objectName= "Bottle", double confidence = 0.5)
     {
-        if (blob_extractor_port.getInputCount() < 1)
+        if(object_properties_collector_port.getOutputCount()<1)
         {
-            yError() << "No connection to object blob extractor module (lbpExtract)";
+            yError() << "No connection to objectPropertiesCollector module";
             return BT_FAILURE;
         }
 
-        Bottle *pBlobs = blob_extractor_port.read(false);
-        if (!pBlobs)
+        Bottle cmd;
+        cmd.fromString("ask ((name == "+objectName+"))");
+
+        Bottle reply;
+        object_properties_collector_port.write(cmd, reply);
+
+        if(reply.size() != 2)
         {
-            yError() << "No object detected";
+            yError() << "invalid answer to object id query from objectPropertiesCollector module: wrong size: " << reply.toString();
             return BT_FAILURE;
         }
 
-        if (pBlobs->size() < 0)
+        if(reply.get(0).asVocab() != Vocab::encode("ack"))
         {
-            yError() << "No object detected";
+            yError() << "invalid answer to object id query from objectPropertiesCollector module: failed: " << reply.toString();
             return BT_FAILURE;
         }
 
-        if (classifier_port.getOutputCount() < 1)
+        if(!reply.check("id"))
         {
-            yError() << "No connection to object classifier module (himrepClassifier)";
+            yError() << "invalid answer to object id query from objectPropertiesCollector module: missing id: " << reply.toString();
             return BT_FAILURE;
         }
 
-        Bottle cmd,reply;
-        cmd.addVocab(Vocab::encode("classify"));
-        Bottle &options=cmd.addList();
-        for (int i=0; i<pBlobs->size(); i++)
+        Bottle *objectIDlist = reply.find("id").asList();
+
+        if(objectIDlist->size() < 1)
         {
-            std::ostringstream tag;
-            tag<<"blob_"<<i;
-            Bottle &item=options.addList();
-            item.addString(tag.str());
-            item.addList()=*(pBlobs->get(i).asList());
+            yInfo() << "object" <<objectName << "does not exist in the database";
+            return BT_FAILURE;
         }
 
-        classifier_port.write(cmd,reply);
+        cmd.clear();
+        cmd.fromString("get (id "+objectIDlist->get(0).toString()+")");
 
-        for (int i=0; i<pBlobs->size(); i++)
+        object_properties_collector_port.write(cmd, reply);
+
+        if(reply.size() != 2)
         {
-            std::ostringstream tag;
-            tag<<"blob_"<<i;
-            if(!reply.check(tag.str()))
-            {
-                yError() << "Invalid answer from object classifier module (himrepClassifier)";
-                return BT_FAILURE;
-            }
-
-            Bottle *objectList = reply.find(tag.str()).asList();
-            if(!objectList->check(objectName))
-            {
-                yError() << objectName << "is missing in object database";
-                return BT_FAILURE;
-            }
-
-            double objectScore = reply.find(objectName).asDouble();
-            if(objectScore > confidence)
-            {
-                return BT_SUCCESS;
-            }
+            yError() << "invalid answer to object properties query from objectPropertiesCollector module: wrong size: " << reply.toString();
+            return BT_FAILURE;
         }
 
-        yInfo() << objectName << "not found, or found with insufficient confidence";
+        if(reply.get(0).asVocab() != Vocab::encode("ack"))
+        {
+            yError() << "invalid answer to object properties query from objectPropertiesCollector module: failed: " << reply.toString();
+            return BT_FAILURE;
+        }
 
-        return BT_FAILURE;
+        if(!reply.get(1).check("position_3d"))
+        {
+            yInfo() << objectName << "not found, or found with insufficient confidence";
+            return BT_FAILURE;
+        }
+
+        return BT_SUCCESS;
     }
 };
 
@@ -217,8 +212,7 @@ int main(int argc, char * argv[])
     MetaConditions skill;
     skill.configure_tick_server("/metaconditions");
     skill.blackboard_port.open("/metaconditions/blackboard/rpc:o");
-    skill.blob_extractor_port.open("/metaconditions/BottleLocalization/blobs:i");
-    skill.classifier_port.open("/metaconditions/BottleLocalization/classifier/rpc:o");
+    skill.object_properties_collector_port.open("/metaconditions/objectPropertiesCollector/rpc:o");
 /*
     std::cout << "Action ready. To send commands to the action, open and type: yarp rpc /metaconditions/tick:i,"
               <<" then type help to find the available commands "
