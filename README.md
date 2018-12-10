@@ -20,7 +20,7 @@ $ make -j
 ```
 
 ### Set up a Behavior Tree's action in YARP
-The file examples/action_example_module.cpp is an example on how the your YARP BT action should look like, it performs an action (it is an action in the Behavior Tree).
+The file examples/server_example.cpp is an example on how the your YARP BT action should look like, it performs an action (it is an action in the Behavior Tree).
 Your action is a thrift server and does stuff. The Behavior Tree is a client and tells to the Server when and if the Server have to start (Tick) and which have to stop (Halt).
 
 Your class must extend `TickServer` and implement (override) two functions: `ReturnStatus execute_tick(const std::string& params = "")` and `ReturnStatus execute_halt(const std::string& params = "")`
@@ -43,7 +43,7 @@ For example:
     }
 
 
-In the function `ReturnStatus execute_halt()` you must write the code to be executed when the module needs to be stopped (e.g. when stopping a walking module we would like to have to robot stop in a home position).
+In the function `execute_halt` you must write the code to be executed when the module needs to be stopped (e.g. when stopping a walking module we would like to have to robot stop in a home position).
 For Example:
 
     void Halt()
@@ -51,7 +51,6 @@ For Example:
             std::cout << "Halting the Action" << std::endl;
     }
 
-### Set up a Behavior Tree's condition in YARP
 **NOTE:** The function `execute_halt` is blocking. Hence you should put here the piece of code you want to execute before continuing the execution of the Behavior Tree.
           However, the code in `execute_tick` (between one is_halted() checkpoint and another) is still being executed in another thread. In some cases, we do not want to waste time waiting for the code to reach
           the next checkpoint (e.g. the action is writing in a port that nobody is reading) but is some other cases, we do need to wait for the code to reach the next checkpoint (e.g. the action is writing commands to a motor).
@@ -72,9 +71,8 @@ Then set a name for your module. The name has the be unique. It will be used bt 
 
 
 ### Set up a Behavior Tree's condition in YARP
-The procedure is similar to the one for the action node, with the only difference that you don't need to implement the function Halt().
+The procedure is similar to the one for the action node, with the only difference that you don't need to implement the function `execute_halt`.
 
-The file examples/action_example_module.cpp gives an example of a BT condiiton node in YARP.
 
     
 
