@@ -27,7 +27,7 @@ Your class must extend `TickServer` and implement (override) two functions: `Ret
 
 
 In the function `execute_tick` you must write the code to be executed when the module needs to be run.
-The function it must set the return status **via the function set_status(ReturnStatus status)** to  BT_SUCCESS if the execution of the action has succeeded and BT_FAILURE if it has failed.
+The function it must set the return status **via the function `void set_status(ReturnStatus status)`** to  BT_SUCCESS if the execution of the action has succeeded and BT_FAILURE if it has failed.
 To allow preemption of your action, it is preferable to check whenever possible if the action has been halted checking the function `is_halt_requested()`.
 
 For example:
