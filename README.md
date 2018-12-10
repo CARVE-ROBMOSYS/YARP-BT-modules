@@ -33,7 +33,7 @@ To allow preemption of your action, it is preferable to check whenever possible 
 For example:
 
 
-    int Tick()
+    ReturnStatus execute_tick()
     {
         if (!is_halt_requested())
         {
@@ -46,9 +46,10 @@ For example:
 In the function `execute_halt` you must write the code to be executed when the module needs to be stopped (e.g. when stopping a walking module we would like to have to robot stop in a home position).
 For Example:
 
-    void Halt()
+    ReturnStatus execute_halt()
     {
             std::cout << "Halting the Action" << std::endl;
+            return BT_HALTED;
     }
 
 **NOTE:** The function `execute_halt` is blocking. Hence you should put here the piece of code you want to execute before continuing the execution of the Behavior Tree.
