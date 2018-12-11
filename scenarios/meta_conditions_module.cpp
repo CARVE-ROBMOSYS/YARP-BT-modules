@@ -61,12 +61,15 @@ public:
 
             ret = BT_SUCCESS;
         }
-        else if(paramsList.get(0).asString() == "BottleLocatedWithConfidenceX")
+        else if(paramsList.get(0).asString() == "ObjectLocatedWithConfidenceX")
         {
             std::string objectName = "Bottle";
             if(paramsList.size() > 1) objectName = paramsList.get(1).asString();
-            double confidence = 0.8;
+            else yWarning() << "ObjectLocatedWithConfidenceX called without object argument, will use \"Bottle\" as default";
+
+            double confidence = 0.7;
             if(paramsList.size() > 2) confidence = paramsList.get(2).asDouble();
+            else yWarning() << "ObjectLocatedWithConfidenceX called without confidence argument, will use" << confidence << "as default";
 
             ret = this->processObjectLocatedWithConfidenceX(objectName, confidence);
         }
@@ -168,7 +171,7 @@ public:
 
         if(objectIDlist->size() < 1)
         {
-            yInfo() << "object" <<objectName << "does not exist in the database";
+            yError() << "object" << objectName << "does not exist in the database";
             return BT_FAILURE;
         }
 
@@ -191,7 +194,23 @@ public:
 
         if(!reply.get(1).check("position_3d"))
         {
-            yInfo() << objectName << "not found, or found with insufficient confidence";
+            yInfo() << objectName << "not found in the scene";
+            return BT_FAILURE;
+        }
+
+        if(reply.get(1).check("class_score"))
+        {
+            double object_confidence = reply.get(1).find("class_score").asDouble();
+
+            if(object_confidence < confidence)
+            {
+                yInfo() << objectName << "was found but confidence is insufficient";
+                return BT_FAILURE;
+            }
+        }
+        else
+        {
+            yError() << objectName << "was found but confidence measure is missing";
             return BT_FAILURE;
         }
 
