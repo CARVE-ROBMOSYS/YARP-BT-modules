@@ -9,7 +9,7 @@
  * @file grasp_bottle_module.cpp
  * @authors: Jason Chevrie <jason.chevrie@iit.it>
  * @brief Behavior Tree leaf node for performing the grasping of a bottle.
- * @remarks This module requires the grasping-module from r1-grasping repository.
+ * @remarks This module requires the grasp-processor from grasp-pose-gen repository.
  */
 
 //standard imports
@@ -94,7 +94,7 @@ public:
         }
 
         Bottle cmdStartHalt;
-        cmdStartHalt.addString("start");
+        cmdStartHalt.addString("restart");
 
         Bottle replyStartHalt;
         grasp_module_start_halt_port.write(cmdStartHalt, replyStartHalt);
@@ -111,14 +111,16 @@ public:
         yInfo() << "start grasping process of Bottle at position " << position.toString();
 
         cmd.clear();
-        cmd.addString("serviceGraspObjectAtPosition");
-        cmd.addDouble(position[0]);
-        cmd.addDouble(position[1]);
-        cmd.addDouble(position[2]);
+        cmd.addString("grasp_from_position");
+        Bottle &subcmd = cmd.addList();
+        subcmd.addDouble(position[0]);
+        subcmd.addDouble(position[1]);
+        subcmd.addDouble(position[2]);
+        cmd.addString("right");
 
         std::future<Bottle> future = std::async(std::launch::async, [this, cmd]{
                 Bottle replyLocal;
-                grasp_module_start_halt_port.write(cmd, replyLocal);
+                grasp_module_port.write(cmd, replyLocal);
                 return replyLocal;
             });
 
@@ -251,6 +253,7 @@ public:
     bool interruptModule() override
     {
         grasp_module_port.interrupt();
+        grasp_module_start_halt_port.interrupt();
         blackboard_port.interrupt();
 
         return true;
@@ -260,6 +263,7 @@ public:
     bool close() override
     {
         grasp_module_port.close();
+        grasp_module_start_halt_port.close();
         blackboard_port.close();
 
         return true;
