@@ -39,11 +39,13 @@ private:
     RpcClient blackboard_port;
 
 public:
-    ReturnStatus execute_tick(const std::string& params = "") override
+    ReturnStatus execute_tick(const std::string& objectName = "") override
     {
-        (void)params;
-
         this->set_status(BT_RUNNING);
+
+        std::string object;
+        if(objectName == "") object = "Bottle";
+        else object = objectName;
 
         //connects to the blackboard to retrieve the bottle position
         if(blackboard_port.getOutputCount()<1)
@@ -55,7 +57,7 @@ public:
 
         Bottle cmd;
         cmd.addString("get");
-        cmd.addString("BottlePose");
+        cmd.addString(object+"Pose");
 
         Bottle reply;
         blackboard_port.write(cmd, reply);
@@ -70,7 +72,7 @@ public:
         Bottle *vector = reply.get(0).asList();
         if(vector->size() < 3)
         {
-            yError() << "invalid bottle vector retrieved from the blackboard: " << reply.toString();
+            yError() << "invalid position vector retrieved from the blackboard: " << reply.toString();
             this->set_status(BT_FAILURE);
             return BT_FAILURE;
         }
@@ -108,7 +110,7 @@ public:
             return BT_FAILURE;
         }
 
-        yInfo() << "start grasping process of Bottle at position " << position.toString();
+        yInfo() << "start grasping process of" << object << "at position " << position.toString();
 
         cmd.clear();
         cmd.addString("grasp_from_position");
@@ -151,7 +153,7 @@ public:
             return BT_FAILURE;
         }
 
-        if(reply.get(0).asVocab() != Vocab::encode("ok"))
+        if(reply.get(0).asVocab() != Vocab::encode("ack"))
         {
             yError() << "grasping failed: see output of grasping module for more information";
             this->set_status(BT_FAILURE);
@@ -171,14 +173,14 @@ public:
 
         cmd.clear();
         cmd.addString("set");
-        cmd.addString("BottleGrasped");
+        cmd.addString(object+"Grasped");
         cmd.addString("True");
 
         blackboard_port.write(cmd, reply);
 
         if(reply.size() != 1)
         {
-            yError() << "sinvalid answer from blackboard module: " << reply.toString();
+            yError() << "invalid answer from blackboard module: " << reply.toString();
             this->set_status(BT_FAILURE);
             return BT_FAILURE;
         }
@@ -190,7 +192,7 @@ public:
             return BT_FAILURE;
         }
 
-        yInfo() << "BottleGrasped written to blackboard";
+        yInfo() << object+"Grasped written to blackboard";
 
         this->set_status(BT_SUCCESS);
         return BT_SUCCESS;
