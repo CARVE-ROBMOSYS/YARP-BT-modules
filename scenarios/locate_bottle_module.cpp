@@ -159,7 +159,7 @@ class LocateBottle : public RFModule, public TickServer
     }
 
     /****************************************************************/
-    ReturnStatus execute_tick(const std::string& objectName = "Bottle")
+    ReturnStatus execute_tick(const std::string& objectName = "")
     {
         this->set_status(BT_RUNNING);
 
@@ -169,8 +169,12 @@ class LocateBottle : public RFModule, public TickServer
             return BT_HALTED;
         }
 
+        std::string object;
+        if(objectName == "") object = "Bottle";
+        else object = objectName;
+
         Vector position3D;
-        if(!this->getObjectPosition(objectName, position3D))
+        if(!this->getObjectPosition(object, position3D))
         {
             yError()<<"execute_tick: getObjectPosition failed";
             this->set_status(BT_FAILURE);
@@ -183,7 +187,7 @@ class LocateBottle : public RFModule, public TickServer
             return BT_HALTED;
         }
 
-        if(!this->writeObjectPositionToBlackboard(objectName, position3D))
+        if(!this->writeObjectPositionToBlackboard(object, position3D))
         {
             yError()<<"execute_tick: writeObjectPositionToBlackboard failed";
             this->set_status(BT_FAILURE);
