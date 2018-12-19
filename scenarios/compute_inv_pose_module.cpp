@@ -52,7 +52,7 @@ public:
         cmd.clear();
         response.clear();
         cmd.addString("set");
-        cmd.addString("InvPoseCompured");
+        cmd.addString("InvPoseComputed");
         cmd.addString("True");
         blackboard_port.write(cmd,response);
         // writing on the blackboard that the inv pose is valid (very bold assumption)
