@@ -201,7 +201,7 @@ int main(int argc, char * argv[])
 */
 
     // initialize blackboard
-
+    blackboard.set("BottleLocated", Value("False"));
     blackboard.set("BottleGrasped", Value("False"));
     blackboard.set("InvPoseComputed", Value("False"));
     blackboard.set("InvPoseValid", Value("False"));
