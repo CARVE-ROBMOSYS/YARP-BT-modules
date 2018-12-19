@@ -73,7 +73,7 @@ class LocateBottle : public RFModule, public TickServer
 
         if(objectIDlist->size() < 1)
         {
-            yError() << "getObjectPosition: invalid answer to object id query from objectPropertiesCollector module: empty id list:" << reply.toString();
+            yError() << "getObjectPosition: empty id list: object" << objectName << "does not exist in the database";
             return false;
         }
 
@@ -158,6 +158,39 @@ class LocateBottle : public RFModule, public TickServer
         return true;
     }
 
+    bool writeObjectDetectionStatusToBlackboard(const std::string &objectName, bool status)
+    {
+        if(blackboard_port.getOutputCount()<1)
+        {
+            yError() << "writeObjectDetectionStatusToBlackboard: no connection to blackboard";
+            return false;
+        }
+
+        Bottle cmd;
+        cmd.addString("set");
+        cmd.addString(objectName+"Located");
+        cmd.addString(status?"True":"False");
+
+        Bottle reply;
+        blackboard_port.write(cmd, reply);
+
+        if(reply.size() != 1)
+        {
+            yError() << "writeObjectDetectionStatusToBlackboard: invalid answer from blackboard: " << reply.toString();
+            return false;
+        }
+
+        if(reply.get(0).asInt() != 1)
+        {
+            yError() << "writeObjectDetectionStatusToBlackboard: invalid answer from blackboard: " << reply.get(0).toString();
+            return false;
+        }
+
+        yInfo() << objectName+"Located set to" << (status?"True":"False") << "in blackboard";
+
+        return true;
+    }
+
     /****************************************************************/
     ReturnStatus execute_tick(const std::string& objectName = "")
     {
@@ -177,6 +210,7 @@ class LocateBottle : public RFModule, public TickServer
         if(!this->getObjectPosition(object, position3D))
         {
             yError()<<"execute_tick: getObjectPosition failed";
+            this->writeObjectDetectionStatusToBlackboard(object, false);
             this->set_status(BT_FAILURE);
             return BT_FAILURE;
         }
@@ -188,6 +222,13 @@ class LocateBottle : public RFModule, public TickServer
         }
 
         if(!this->writeObjectPositionToBlackboard(object, position3D))
+        {
+            yError()<<"execute_tick: writeObjectPositionToBlackboard failed";
+            this->set_status(BT_FAILURE);
+            return BT_FAILURE;
+        }
+
+        if(!this->writeObjectDetectionStatusToBlackboard(object, true))
         {
             yError()<<"execute_tick: writeObjectPositionToBlackboard failed";
             this->set_status(BT_FAILURE);
