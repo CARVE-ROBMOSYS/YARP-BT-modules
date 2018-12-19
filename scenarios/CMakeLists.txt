@@ -22,5 +22,9 @@ target_link_libraries(set_inv_pose_invalid_module ${YARP_LIBRARIES} )
 add_executable(always_running_module always_running_module.cpp ${YARP_TICK_LIB_SRC})
 target_link_libraries(always_running_module ${YARP_LIBRARIES} )
 
+add_executable(locate_bottle_module locate_bottle_module.cpp ${YARP_TICK_LIB_SRC})
+target_link_libraries(locate_bottle_module ${YARP_LIBRARIES} )
+
 add_executable(grasp_bottle_module grasp_bottle_module.cpp ${YARP_TICK_LIB_SRC})
 target_link_libraries(grasp_bottle_module ${YARP_LIBRARIES} )
+
