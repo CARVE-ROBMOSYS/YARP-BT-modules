@@ -38,6 +38,7 @@ public:
     ReturnStatus execute_tick(const std::string& params = "") override
     {
         set_status(BT_RUNNING);
+        bool ret = false;
         yInfo() << "[ComputeInvPose] Action started";
         std::string inv_pose = "map_2rooms 2.0 3.0 -180.0";
         cmd.clear();
@@ -45,8 +46,8 @@ public:
         cmd.addString("set");
         cmd.addString("InvPose");
         cmd.addString(inv_pose);
-        blackboard_port.write(cmd,response);
-        yInfo() << "[ComputeInvPose] InvPose is set to" << inv_pose;
+        ret = blackboard_port.write(cmd,response);
+        yInfo() << "[ComputeInvPose] InvPose is set to" << inv_pose << " ret value " << ret;
 
         // writing on the blackboard that the inv pose is computed (to make the condition "is InvPoseComputed" simple)
         cmd.clear();
@@ -54,15 +55,17 @@ public:
         cmd.addString("set");
         cmd.addString("InvPoseComputed");
         cmd.addString("True");
-        blackboard_port.write(cmd,response);
+        ret = blackboard_port.write(cmd,response);
+        yInfo() << "[InvPoseComputed] InvPose is set to True" << " ret value " << ret;
+
         // writing on the blackboard that the inv pose is valid (very bold assumption)
         cmd.clear();
         response.clear();
         cmd.addString("set");
         cmd.addString("InvPoseValid");
         cmd.addString("True");
-        blackboard_port.write(cmd,response);
-
+        ret = blackboard_port.write(cmd,response);
+        yInfo() << "[InvPoseValid] InvPose is set to True" << " ret value " << ret;
 
         set_status(BT_SUCCESS);
         return BT_SUCCESS;
