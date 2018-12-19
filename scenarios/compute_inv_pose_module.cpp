@@ -39,7 +39,7 @@ public:
     {
         set_status(BT_RUNNING);
         yInfo() << "[ComputeInvPose] Action started";
-        std::string inv_pose = "-2.0 -3.0 -180.0";
+        std::string inv_pose = "map_2rooms 2.0 3.0 -180.0";
         cmd.clear();
         response.clear();
         cmd.addString("set");
