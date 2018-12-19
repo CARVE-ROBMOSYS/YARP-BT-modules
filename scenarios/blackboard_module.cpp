@@ -50,6 +50,7 @@ public:
         ReturnStatusVocab a;
         yInfo() << "Request_tick got  params " << params << " replying with " << a.toString((int)ret);
         //std::this_thread::sleep_for( std::chrono::seconds(3));
+        set_status(ret);
         return ret;
     }
 
