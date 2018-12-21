@@ -29,8 +29,9 @@ using namespace yarp::sig;
 /****************************************************************/
 class LocateBottle : public RFModule, public TickServer
 {
-    RpcClient object_properties_collector_port;
-    RpcClient blackboard_port;
+    RpcClient object_properties_collector_port; // should be connected to /memory/rpc
+    RpcClient gaze_exploration_port; // should be connected to /iolStateMachineHandler/human:rpc
+    RpcClient blackboard_port; // should be connected to /blackboard/rpc:i
 
     /****************************************************************/
     bool getObjectPosition(const std::string &objectName, Vector &position)
@@ -192,6 +193,37 @@ class LocateBottle : public RFModule, public TickServer
     }
 
     /****************************************************************/
+    bool setGazeExploration(bool status)
+    {
+        if(gaze_exploration_port.getOutputCount()<1)
+        {
+            yError() << "setGazeExploration: no connection to gaze exploration module";
+            return false;
+        }
+
+        Bottle cmd;
+        cmd.addString("attention");
+        cmd.addString(status?"start":"stop");
+
+        Bottle reply;
+        gaze_exploration_port.write(cmd, reply);
+
+        if(reply.size() != 1)
+        {
+            yError() << "setGazeExploration: invalid answer from gaze exploration module: " << reply.toString();
+            return false;
+        }
+
+        if(reply.get(0).asVocab() != Vocab::encode("ack"))
+        {
+            yError() << "setGazeExploration: invalid answer from gaze exploration module: " << reply.get(0).toString();
+            return false;
+        }
+
+        return true;
+    }
+
+    /****************************************************************/
     ReturnStatus execute_tick(const std::string& objectName = "")
     {
         this->set_status(BT_RUNNING);
@@ -207,12 +239,32 @@ class LocateBottle : public RFModule, public TickServer
         else object = objectName;
 
         Vector position3D;
+        bool objectLocated = false;
+
+        // if object not already found run gaze exploration until the object is found
         if(!this->getObjectPosition(object, position3D))
         {
-            yError()<<"execute_tick: getObjectPosition failed";
-            this->writeObjectDetectionStatusToBlackboard(object, false);
-            this->set_status(BT_FAILURE);
-            return BT_FAILURE;
+            if(!this->writeObjectDetectionStatusToBlackboard(object, true))
+            {
+                yError()<<"execute_tick: writeObjectPositionToBlackboard failed";
+                this->set_status(BT_FAILURE);
+                return BT_FAILURE;
+            }
+
+            // activate gaze exploration
+            this->setGazeExploration(true);
+
+            // wait until object is found
+            while(!objectLocated)
+            {
+                if(this->getHalted())
+                {
+                    this->set_status(BT_HALTED);
+                    return BT_HALTED;
+                }
+
+                objectLocated = this->getObjectPosition(object, position3D);
+            }
         }
 
         if(this->getHalted())
@@ -253,6 +305,13 @@ class LocateBottle : public RFModule, public TickServer
            return false;
         }
 
+        std::string gazeExplorationPortName= "/"+this->getName()+"/gazeExploration/rpc:o";
+        if (!gaze_exploration_port.open(gazeExplorationPortName))
+        {
+           yError() << this->getName() << ": Unable to open port " << gazeExplorationPortName;
+           return false;
+        }
+
         std::string blackboardPortName= "/"+this->getName()+"/blackboard/rpc:o";
         if (!blackboard_port.open(blackboardPortName))
         {
@@ -285,6 +344,7 @@ class LocateBottle : public RFModule, public TickServer
     bool interruptModule() override
     {
         object_properties_collector_port.interrupt();
+        gaze_exploration_port.interrupt();
         blackboard_port.interrupt();
 
         return true;
@@ -294,7 +354,8 @@ class LocateBottle : public RFModule, public TickServer
     bool close() override
     {
         object_properties_collector_port.close();
-        blackboard_port.close();;
+        gaze_exploration_port.close();
+        blackboard_port.close();
 
         return true;
     }
