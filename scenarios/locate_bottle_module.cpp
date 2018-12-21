@@ -91,13 +91,13 @@ class LocateBottle : public RFModule, public TickServer
 
         if(reply.get(0).asVocab() != Vocab::encode("ack"))
         {
-            yError() << "getObjectPosition: invalid answer to object position query from objectPropertiesCollector module: object position not found: " << reply.toString();
+            yError() << "getObjectPosition: invalid answer to object position query from objectPropertiesCollector module:" << objectName << "position not found: " << reply.toString();
             return false;
         }
 
         if(!reply.get(1).check("position_3d"))
         {
-            yError() << "getObjectPosition: invalid answer to object position query from objectPropertiesCollector module: object position not found: " << reply.toString();
+            yError() << "getObjectPosition: invalid answer to object position query from objectPropertiesCollector module:" << objectName << "position not found: " << reply.toString();
             return false;
         }
 
@@ -224,9 +224,41 @@ class LocateBottle : public RFModule, public TickServer
     }
 
     /****************************************************************/
-    ReturnStatus execute_tick(const std::string& objectName = "")
+    ReturnStatus execute_tick(const std::string& params = "")
     {
         this->set_status(BT_RUNNING);
+
+        Bottle paramsList;
+        paramsList.fromString(params);
+
+        std::string objectName("Bottle");
+        double timeOut = 10;
+
+        if(paramsList.size() > 0)
+        {
+            std::string object = paramsList.get(0).asString();
+            if(object != "")
+            {
+                objectName = object;
+            }
+            else
+            {
+                yError()<<"execute_tick: invalid first parameter. Should be a string (object name).";
+            }
+        }
+
+        if(paramsList.size() > 1)
+        {
+            double time = paramsList.get(1).asDouble();
+            if(time > 0)
+            {
+                timeOut = time;
+            }
+            else
+            {
+                yError()<<"execute_tick: invalid second parameter. Should be a positive value (timeout).";
+            }
+        }
 
         if(this->getHalted())
         {
@@ -234,17 +266,13 @@ class LocateBottle : public RFModule, public TickServer
             return BT_HALTED;
         }
 
-        std::string object;
-        if(objectName == "") object = "Bottle";
-        else object = objectName;
-
         Vector position3D;
         bool objectLocated = false;
 
         // if object not already found run gaze exploration until the object is found
-        if(!this->getObjectPosition(object, position3D))
+        if(!this->getObjectPosition(objectName, position3D))
         {
-            if(!this->writeObjectDetectionStatusToBlackboard(object, true))
+            if(!this->writeObjectDetectionStatusToBlackboard(objectName, true))
             {
                 yError()<<"execute_tick: writeObjectPositionToBlackboard failed";
                 this->set_status(BT_FAILURE);
@@ -254,8 +282,10 @@ class LocateBottle : public RFModule, public TickServer
             // activate gaze exploration
             this->setGazeExploration(true);
 
-            // wait until object is found
-            while(!objectLocated)
+            // wait until object is found or timeout
+
+            double t0 = yarp::os::Time::now();
+            while((!objectLocated) && (yarp::os::Time::now()-t0 < timeOut))
             {
                 if(this->getHalted())
                 {
@@ -263,7 +293,18 @@ class LocateBottle : public RFModule, public TickServer
                     return BT_HALTED;
                 }
 
-                objectLocated = this->getObjectPosition(object, position3D);
+                objectLocated = this->getObjectPosition(objectName, position3D);
+
+                yarp::os::Time::delay(0.1);
+            }
+
+            this->setGazeExploration(false);
+
+            if(!objectLocated)
+            {
+                yError()<<"execute_tick: object search timed out";
+                this->set_status(BT_FAILURE);
+                return BT_FAILURE;
             }
         }
 
@@ -273,14 +314,14 @@ class LocateBottle : public RFModule, public TickServer
             return BT_HALTED;
         }
 
-        if(!this->writeObjectPositionToBlackboard(object, position3D))
+        if(!this->writeObjectPositionToBlackboard(objectName, position3D))
         {
             yError()<<"execute_tick: writeObjectPositionToBlackboard failed";
             this->set_status(BT_FAILURE);
             return BT_FAILURE;
         }
 
-        if(!this->writeObjectDetectionStatusToBlackboard(object, true))
+        if(!this->writeObjectDetectionStatusToBlackboard(objectName, true))
         {
             yError()<<"execute_tick: writeObjectPositionToBlackboard failed";
             this->set_status(BT_FAILURE);
