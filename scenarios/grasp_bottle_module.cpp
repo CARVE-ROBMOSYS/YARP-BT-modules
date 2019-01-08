@@ -34,9 +34,9 @@ class GraspBottle : public TickServer,  public RFModule
 {
 private:
 
-    RpcClient grasp_module_port;
-    RpcClient grasp_module_start_halt_port;
-    RpcClient blackboard_port;
+    RpcClient grasp_module_port; // default name /GraspBottle/grasping/rpc:o, should be connected to /graspProcessor/cmd:rpc
+    RpcClient grasp_module_start_halt_port; // default name /GraspBottle/graspingStartHalt/rpc:o should be connected to /graspProcessor/cmd:rpc (optional)
+    RpcClient blackboard_port; // default name /GraspBottle/blackboard/rpc:o,  should be connected to /blackboard/rpc:i
 
 public:
     ReturnStatus execute_tick(const std::string& objectName = "") override
@@ -55,31 +55,6 @@ public:
             return BT_FAILURE;
         }
 
-        Bottle cmd;
-        cmd.addString("get");
-        cmd.addString(object+"Pose");
-
-        Bottle reply;
-        blackboard_port.write(cmd, reply);
-
-        if(reply.size() != 1)
-        {
-            yError() << "invalid answer from the blackboard: " << reply.toString();
-            this->set_status(BT_FAILURE);
-            return BT_FAILURE;
-        }
-
-        Bottle *vector = reply.get(0).asList();
-        if(vector->size() < 3)
-        {
-            yError() << "invalid position vector retrieved from the blackboard: " << reply.toString();
-            this->set_status(BT_FAILURE);
-            return BT_FAILURE;
-        }
-
-        Vector position(3, 0.0);
-        for(int i=0 ; i<3 ; i++) position[i] = vector->get(i).asDouble();
-
         if(this->getHalted())
         {
             this->set_status(BT_HALTED);
@@ -88,18 +63,12 @@ public:
 
         // restart the grasping-module if it was previously stopped
 
-        if(grasp_module_start_halt_port.getOutputCount()<1)
+        if(grasp_module_start_halt_port.getOutputCount()>0)
         {
-            yError() << "no connection to start/halt port of grasping module";
-            this->set_status(BT_FAILURE);
-            return BT_FAILURE;
+            Bottle cmdStartHalt, replyStartHalt;
+            cmdStartHalt.addString("restart");
+            grasp_module_start_halt_port.write(cmdStartHalt, replyStartHalt);
         }
-
-        Bottle cmdStartHalt;
-        cmdStartHalt.addString("restart");
-
-        Bottle replyStartHalt;
-        grasp_module_start_halt_port.write(cmdStartHalt, replyStartHalt);
 
         //connects to the grasping module to perform the grasping
 
@@ -110,14 +79,11 @@ public:
             return BT_FAILURE;
         }
 
-        yInfo() << "start grasping process of" << object << "at position " << position.toString();
+        yInfo() << "Start grasping process of" << object;
 
-        cmd.clear();
-        cmd.addString("grasp_from_position");
-        Bottle &subcmd = cmd.addList();
-        subcmd.addDouble(position[0]);
-        subcmd.addDouble(position[1]);
-        subcmd.addDouble(position[2]);
+        Bottle cmd;
+        cmd.addString("grasp");
+        cmd.addString(object);
         cmd.addString("right");
 
         std::future<Bottle> future = std::async(std::launch::async, [this, cmd]{
@@ -134,7 +100,7 @@ public:
             // waiting for execute_grasp_thread to finish and stop it if necessary
             if(this->getHalted())
             {
-                cmdStartHalt.clear();
+                Bottle cmdStartHalt, replyStartHalt;
                 cmdStartHalt.addString("halt");
                 grasp_module_start_halt_port.write(cmdStartHalt, replyStartHalt);
                 future.wait();
@@ -144,7 +110,7 @@ public:
         }
         while(status != std::future_status::ready);
 
-        reply = future.get();
+        Bottle reply = future.get();
 
         if(reply.size() != 1)
         {
@@ -204,10 +170,6 @@ public:
         this->setName("GraspBottle");
 
         this->configure_tick_server("/"+this->getName(), true);
-
-        grasp_module_port.open("/GraspBottle/grasping/rpc:o");
-        grasp_module_start_halt_port.open("/GraspBottle/graspingStartStop/rpc:o");
-        blackboard_port.open("/GraspBottle/blackboard/rpc:o");
 
         std::string grasp_module_port_name= "/"+this->getName()+"/grasping/rpc:o";
         if (!grasp_module_port.open(grasp_module_port_name))
