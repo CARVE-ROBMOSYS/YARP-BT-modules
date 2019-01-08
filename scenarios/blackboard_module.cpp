@@ -201,6 +201,8 @@ int main(int argc, char * argv[])
 */
 
     // initialize blackboard
+    blackboard.set("RobotInKitchen", Value("False"));
+    blackboard.set("Kitchen", Value("sanquirico 10.3699 2.079 -14.56"));
     blackboard.set("BottleLocated", Value("False"));
     blackboard.set("BottleGrasped", Value("False"));
     blackboard.set("InvPoseComputed", Value("False"));
