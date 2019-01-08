@@ -40,7 +40,7 @@ public:
         set_status(BT_RUNNING);
         bool ret = false;
         yInfo() << "[ComputeInvPose] Action started";
-        std::string inv_pose = "map_2rooms 2.0 3.0 -180.0";
+        std::string inv_pose = "sanquirico 11.0328 1.8928 -13.0545";
         cmd.clear();
         response.clear();
         cmd.addString("set");
