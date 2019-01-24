@@ -38,7 +38,7 @@ private:
     RpcClient blackboard_port; // default name /pourDrink/blackboard/rpc:o,  should be connected to /blackboard/rpc:i
 
 public:
-    ReturnStatus execute_tick(const std::string& params = "") override
+    ReturnStatus execute_tick(const std::string& targetName = "") override
     {
         this->set_status(BT_RUNNING);
 
@@ -53,7 +53,7 @@ public:
 
         Bottle cmd;
         cmd.addString("get");
-        cmd.addString("GlassTopPosition");
+        cmd.addString(targetName+"Shape");
 
         Bottle reply;
         blackboard_port.write(cmd, reply);
@@ -66,15 +66,33 @@ public:
         }
 
         Bottle *vector = reply.get(0).asList();
-        if(vector->size() < 3)
+        if(vector->size() < 10)
         {
-            yError() << "invalid glass top position vector retrieved from the blackboard: " << reply.toString();
+            yError() << "invalid glass shape vector retrieved from the blackboard: " << reply.toString();
             this->set_status(BT_FAILURE);
             return BT_FAILURE;
         }
 
-        Vector glassTopPosition(3);
-        for(int i=0 ; i<3 ; i++) glassTopPosition[i] = vector->get(i).asDouble();
+        Vector targetCenter(3);
+        Vector targetOrientation(4);
+        for(int i=0 ; i<3 ; i++) targetCenter[i] = vector->get(i).asDouble();
+        for(int i=0 ; i<4 ; i++) targetOrientation[i] = vector->get(3+i).asDouble();
+
+        Matrix targetRot = yarp::math::axis2dcm(targetOrientation);
+
+        int axis=2;
+        if(fabs(targetRot(2,0)) > fabs(targetRot(2,2)))
+        {
+            if(fabs(targetRot(2,0)) > fabs(targetRot(2,1))) axis = 0;
+            else axis = 1;
+        }
+        else if(fabs(targetRot(2,1)) > fabs(targetRot(2,2))) axis = 1;
+        else axis = 2;
+
+        Vector upAxis = targetRot.subcol(0,axis,3);
+        if(upAxis[2] < 0) upAxis = -1*upAxis;
+
+        Vector targetTopPosition = targetCenter + vector->get(7+axis).asDouble() * upAxis;
 
         if(this->getHalted())
         {
@@ -126,12 +144,12 @@ public:
 
         cmd.clear();
         cmd.addVocab(Vocab::encode("pour"));
-        Bottle &targetList = cmd.addList();
-        targetList.addString("target");
-        for (int i=0 ; i<3 ; i++) targetList.addDouble(glassTopPosition[i]);
-        Bottle &bottleNeckList = cmd.addList();
-        bottleNeckList.addString("neck_position");
-        for (int i=0 ; i<3 ; i++) bottleNeckList.addDouble(bottleNeckOffset[i]);
+        Bottle &sourceList = cmd.addList();
+        sourceList.addString("source");
+        for (int i=0 ; i<3 ; i++) sourceList.addDouble(bottleNeckOffset[i]);
+        Bottle &destinationList = cmd.addList();
+        destinationList.addString("destination");
+        for (int i=0 ; i<3 ; i++) destinationList.addDouble(targetTopPosition[i]);
 
         reply.clear();
         action_module_port.write(cmd, reply);
