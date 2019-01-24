@@ -35,12 +35,29 @@ class PourDrink : public TickServer,  public RFModule
 private:
 
     RpcClient action_module_port; // default name /PourDrink/action/rpc:o, should be connected to /action-gateway/cmd:io
-    RpcClient blackboard_port; // default name /pourDrink/blackboard/rpc:o,  should be connected to /blackboard/rpc:i
+    RpcClient blackboard_port; // default name /PourDrink/blackboard/rpc:o,  should be connected to /blackboard/rpc:i
 
 public:
-    ReturnStatus execute_tick(const std::string& targetName = "") override
+    ReturnStatus execute_tick(const std::string& params = "") override
     {
         this->set_status(BT_RUNNING);
+
+        Bottle paramsList;
+        paramsList.fromString(params);
+
+        std::string targetName("Glass");
+        if(paramsList.size() > 0)
+        {
+            std::string target = paramsList.get(0).asString();
+            if(target != "")
+            {
+                targetName = target;
+            }
+            else
+            {
+                yError() << "execute_tick: invalid first parameter. Should be a string (target name).";
+            }
+        }
 
         //connects to the blackboard to retrieve the glass top position in ref frame
 
