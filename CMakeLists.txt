@@ -7,7 +7,10 @@
 # @authors: Michele Colledanchise <michele.colledanchise@iit.it>
 
 project(YARPBTModules)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -19,17 +22,11 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 ## ENABLE C++11 and thread
 ##########################################################
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-##########################################################
-## ENABLE C++11
-##########################################################
-#include(CheckCXXCompilerFlag)
-#unset(CXX11_FLAGS)
-#check_cxx_compiler_flag("-std=c++11" CXX_HAS_STD_CXX11)
-#if(CXX_HAS_STD_CXX11)
-#  set(CXX11_FLAGS "-std=c++11")
-#endif()
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+endif()
 
 #########################################################
 # FIND YARP
@@ -62,32 +59,42 @@ set(YARP_TICK_LIB_SRC   ${sources}
 # Building library
 #####################################################
 
-add_library(YARP_tickable SHARED ${YARP_TICK_LIB_SRC})
-target_link_libraries(YARP_tickable ${YARP_LIBRARIES})
+add_library(${PROJECT_NAME} SHARED ${YARP_TICK_LIB_SRC})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${YARP_LIBRARIES})
 
+target_include_directories(${PROJECT_NAME}
+        PUBLIC      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                    $<INSTALL_INTERFACE:include>)
 
-#####################################################
-# Building Executables
-#####################################################
-# add_executable(action_example_module examples/action_example_module.cpp  ${YARP_BT_MODULES_SRC})
-# target_link_libraries(action_example_module ${YARP_LIBRARIES} )
-#
-# add_executable(condition_example_module examples/condition_example_module.cpp ${YARP_BT_MODULES_SRC})
-# target_link_libraries(condition_example_module ${YARP_LIBRARIES} )
 
 #####################################################
 # Building Examples about lib
 #####################################################
 
-add_executable(client_example examples/client_example.cpp  ${YARP_TICK_LIB_SRC})
-target_link_libraries(client_example ${YARP_LIBRARIES} )
+add_executable(client_example examples/client_example.cpp)
+target_link_libraries(client_example ${PROJECT_NAME} )
 
-add_executable(server_example examples/server_example.cpp  ${YARP_TICK_LIB_SRC})
-target_link_libraries(server_example ${YARP_LIBRARIES} )
+add_executable(server_example examples/server_example.cpp)
+target_link_libraries(server_example ${PROJECT_NAME})
 
 add_subdirectory(scenarios)
 
 
+######################################################
+# EXPORTS
 
+set(PROJECT_CONFIG ${PROJECT_NAME}Config)
+export(TARGETS ${PROJECT_NAME}
+       FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_CONFIG}.cmake")
 
+install(TARGETS ${PROJECT_NAME}
+   EXPORT ${PROJECT_CONFIG}
+   ARCHIVE DESTINATION lib
+   LIBRARY DESTINATION lib   )
 
+INSTALL( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.h*")
+
+install(EXPORT ${PROJECT_CONFIG}
+    DESTINATION "lib/cmake")
