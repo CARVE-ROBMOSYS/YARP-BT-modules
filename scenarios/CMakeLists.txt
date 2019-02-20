@@ -30,3 +30,6 @@ target_link_libraries(grasp_bottle_module ${YARP_LIBRARIES} )
 
 add_executable(pour_drink_module pour_drink_module.cpp ${YARP_TICK_LIB_SRC})
 target_link_libraries(pour_drink_module ${YARP_LIBRARIES} )
+
+add_executable(text_to_action text_to_action.cpp)
+target_link_libraries(text_to_action ${YARP_LIBRARIES} )
