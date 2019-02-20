@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2018 Istituto Italiano di Tecnologia (IIT)
+ * Copyright (C) 2006-2019 Istituto Italiano di Tecnologia (IIT)
  * All rights reserved.
  *
  * This software may be modified and distributed under the terms of the
@@ -19,24 +19,24 @@ public:
   std::string params;
   ReturnStatus _return;
   void init(const std::string& params);
-  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
-  virtual bool read(yarp::os::ConnectionReader& connection) override;
+  bool write(yarp::os::ConnectionWriter& connection) const override;
+  bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class BTCmd_request_status : public yarp::os::Portable {
 public:
   ReturnStatus _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
-  virtual bool read(yarp::os::ConnectionReader& connection) override;
+  bool write(yarp::os::ConnectionWriter& connection) const override;
+  bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class BTCmd_request_halt : public yarp::os::Portable {
 public:
   ReturnStatus _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
-  virtual bool read(yarp::os::ConnectionReader& connection) override;
+  bool write(yarp::os::ConnectionWriter& connection) const override;
+  bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 bool BTCmd_request_tick::write(yarp::os::ConnectionWriter& connection) const {

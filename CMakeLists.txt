@@ -38,6 +38,7 @@ find_package(YARP REQUIRED)
 #########################################################
 set(generated_libs_dir "${CMAKE_CURRENT_SOURCE_DIR}")
 yarp_idl_to_dir(BTCmd.thrift ${generated_libs_dir}  sources headers include_dirs)
+yarp_idl_to_dir(BT_monitoring.thrift ${generated_libs_dir}  sources2 headers2 include_dirs2)
 
 message("sources ${sources}")
 
@@ -49,7 +50,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include/)
 #                         src/BTCmd.cpp
 #                         src/ReturnStatus.cpp)
 
-set(YARP_TICK_LIB_SRC   ${sources}
+set(YARP_TICK_LIB_SRC   ${sources} ${sources2}
                         ${PROJECT_SOURCE_DIR}/src/tick_server.cpp
                         ${PROJECT_SOURCE_DIR}/src/tick_client.cpp
                         )
