@@ -21,7 +21,7 @@
 #include <yarp/os/all.h>
 #include <yarp/os/Log.h>
 #include <yarp/os/LogStream.h>
-#include <yarp/dev/Polydriver.h>
+#include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/INavigation2D.h>
 #include <yarp/sig/all.h>
 
@@ -37,6 +37,7 @@ class TextToAction : public RFModule
     Port      speechTranscription_port;         // should be connected to ...
     RpcClient blackboard_port;                  // should be connected to /blackboard/rpc:i
     std::string string1;
+    std::string string2;
     PolyDriver ddNavClient;
     INavigation2D* iNav;
 
@@ -44,10 +45,11 @@ class TextToAction : public RFModule
     TextToAction ()
     {
         string1 = "this is the kitchen";
+        string1 = "forget room";
         iNav = 0;
     }
 
-    bool writeToBlackboard()
+    bool writeToBlackboard(bool flag_kitchen)
     {
         if (blackboard_port.getOutputCount() < 1)
         {
@@ -61,7 +63,8 @@ class TextToAction : public RFModule
             reply.clear();
             cmd.addString("set");
             cmd.addString("RoomKnown");
-            cmd.addString("True");
+            if (flag_kitchen) cmd.addString("True");
+            else cmd.addString("False");
             blackboard_port.write(cmd, reply);
 
             if (reply.size() != 1)
@@ -83,8 +86,9 @@ class TextToAction : public RFModule
             cmd.clear();
             reply.clear();
             cmd.addString("set");
-            cmd.addString("RobotInRoom");
-            cmd.addString("True");
+            cmd.addString("RobotAtRoom");
+            if (flag_kitchen) cmd.addString("True");
+            else cmd.addString("False");
             blackboard_port.write(cmd, reply);
 
             if (reply.size() != 1)
@@ -117,8 +121,10 @@ class TextToAction : public RFModule
             cmd.clear();
             reply.clear();
             cmd.addString("set");
-            cmd.addString("Kitchen");
-            string kitchen_coordinates = loc.map_id + " " + std::to_string(loc.x) + " " + std::to_string(loc.y) + " " + std::to_string(loc.theta);
+            cmd.addString("Room");
+            string kitchen_coordinates;
+            if (flag_kitchen) kitchen_coordinates = loc.map_id + " " + std::to_string(loc.x) + " " + std::to_string(loc.y) + " " + std::to_string(loc.theta);
+            else              kitchen_coordinates = std::string("no_map") + " " + std::to_string(0.0) + " " + std::to_string(0.0) + " " + std::to_string(0.0);
             cmd.addString(kitchen_coordinates);
             blackboard_port.write(cmd, reply);
 
@@ -202,7 +208,20 @@ class TextToAction : public RFModule
             if (transc == string1)
             {
                 yDebug() << "Text: '" << transc << "' has been recognized. Writing data on blackboard.";
-                bool ret = this->writeToBlackboard();
+                bool ret = this->writeToBlackboard(true);
+                if (ret)
+                {
+                    yInfo() << "writeToBlackboard() successful";
+                }
+                else
+                {
+                    yError() << "writeToBlackboard() failed";
+                }
+            }
+            else if (transc == string2)
+            {
+                yDebug() << "Text: '" << transc << "' has been recognized. Writing data on blackboard.";
+                bool ret = this->writeToBlackboard(false);
                 if (ret)
                 {
                     yInfo() << "writeToBlackboard() successful";
