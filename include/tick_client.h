@@ -17,13 +17,18 @@
 #include <thread>
 #include <atomic>
 
-#include <include/BTCmd.h>
 #include <yarp/os/Port.h>
+#include <include/BTCmd.h>
+#include <TickCommand.h>
+#include <Direction.h>
+#include <BTMonitorMsg.h>
+
 
 class TickClient : private BTCmd
 {
 public:
     TickClient();
+    ~TickClient();
 
     /**
      * @brief configure  Open the yarp port to send tick requests
@@ -47,12 +52,20 @@ public:
     ReturnStatus request_halt();
 
 private:
-
-    yarp::os::Port cmd_port_;
     std::string module_name_;
+    std::string serverName_;
+    yarp::os::Port cmd_port_;
+
+    // monitor port is optional, so don't instantiate it if not required.
+    bool useMonitor {false};
+    std::unique_ptr<yarp::os::Port> toMonitor;
 
     std::atomic<ReturnStatus> status_;
     std::thread execute_tick_thread_;
+
+    bool propagateCmd(TickCommand cmd, const std::string &params="");
+    bool propagateReply(TickCommand cmd, ReturnStatus reply);
+    bool propagateToMonitor(TickCommand cmdType, Direction dir, const std::string &params,  ReturnStatus reply=BT_IDLE);
 };
 
 #endif // YARP_BT_MODULES_TICK_CLIENT_H
