@@ -97,7 +97,6 @@ public:
         if (command.get(0).asString() == "set")
         {
             //request to set a value on the blackboard
-
             std::string key;
 
             key  = command.get(1).asString();
@@ -126,6 +125,7 @@ public:
             reply.addString("get <entryName>  -- entries are returned as yarp::os::Value");
             reply.addString("list   -- prints all stored entries");
             reply.addString("clear  -- erase  all entries");
+            reply.addString("initialize  -- reset blackboard to its default state");
         }
         else if (command.get(0).asString() == "list")
         {
@@ -138,6 +138,12 @@ public:
         else if (command.get(0).asString() == "clear")
         {
             bb.clear();
+            reply.addInt(1);//TODO add sanity check here
+        }
+        else if (command.get(0).asString() == "initialize")
+        {
+            bb.clear();
+            initializeValues();
             reply.addInt(1);//TODO add sanity check here
         }
         else
@@ -173,6 +179,55 @@ public:
         return true;
     }
 
+    void initializeValues()
+    {
+        // initialize blackboard
+        set("RoomKnown", Value("False"));
+        set("RobotAtRoom", Value("False"));
+        set("BottleFound", Value("False"));
+        set("Room_navParams", Value("0.35 True"));
+        set("Room", Value("0.0 0.0 0.0"));
+
+        set("RobotAtFindBottle", Value("False"));
+        set("FindBottle_navParams", Value("0.35 True"));
+        set("FindBottle", Value("sanquirico 10.0 2.02 -14.56"));
+
+        set("RobotAtKitchen", Value("False"));
+        set("Kitchen_navParams", Value("0.35 True"));
+        set("Kitchen", Value("sanquirico 10.0 2.02 0.0"));
+        set("BottleLocated", Value("False"));
+        set("BottleGrasped", Value("False"));
+        set("InvPoseComputed", Value("False"));
+        set("InvPoseValid", Value("False"));
+        set("InvPose", Value("0.0 0.0 0.0"));
+        set("InvPose_navParams", Value("0.1 False"));
+        set("RobotAtInvPose", Value("False"));
+
+        set("homeArms",                 Value("joint ( "
+                                              "(left_arm  45 60 10 80 18) "
+                                              "(right_arm 45 60 10 80 18) "
+                                              "(torso 0.01) "
+                                              ") dummy_blackboard_condition"));
+
+        // Values for simulation may be different wrt the real world, so let's use
+        // a dedicated set of parameters with <Sim> suffix
+
+        // Just enter in the kitchen
+        set("KitchenSim",                Value("sanquirico 10.0 2.02 90.0"));    // orientation is coherent to door entrance
+        set("KitchenSim_navParams",      Value("0.35 True"));
+        set("RobotAtKitchenSim",         Value("False"));
+
+        // Rotate toward the table
+        set("FindBottleSim",             Value("sanquirico 10.0 2.02 0.0"));     // robot oriented toward the table
+        set("FindBottleSim_navParams",   Value("0.35 True"));
+        set("RobotAtFindBottleSim",      Value("False"));
+
+        set("InvPoseSim",                Value("sanquirico 10.9152 1.68453 -12.7319"));
+        set("InvPoseSim_navParams",      Value("0.1 False"));
+        set("RobotAtInvPoseSim",         Value("False"));
+
+        set("grasp Bottle",              Value("joint ( (right_arm 28.8 37.35 -10.2 54.9 40) ) BottleGrasped"));
+    }
 };
 
 int main(int argc, char * argv[])
@@ -193,30 +248,8 @@ int main(int argc, char * argv[])
     BlackBoard blackboard;
     blackboard.configure_tick_server("/blackboard");
 
-
-/*
-    std::cout << "Action ready. To send commands to the action, open and type: yarp rpc /ActionExample/cmd,"
-              <<" then type help to find the available commands "
-              << std::endl;
-*/
-
-    // initialize blackboard
-    blackboard.set("RobotInKitchen", Value("False"));
-    blackboard.set("Kitchen", Value("sanquirico 10.3699 2.079 -14.56"));
-    blackboard.set("BottleLocated", Value("False"));
-    blackboard.set("BottleGrasped", Value("False"));
-    blackboard.set("InvPoseComputed", Value("False"));
-    blackboard.set("InvPoseValid", Value("False"));
-    blackboard.set("InvPose", Value("000"));
-
+    blackboard.initializeValues();
 
     blackboard.runModule(rf);
-
-
-//    while (true)
-//    {
-//        std::this_thread::sleep_for( std::chrono::seconds(10));
-//        yInfo() << "Running";
-//    }
     return 0;
 }
