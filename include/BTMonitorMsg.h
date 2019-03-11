@@ -14,9 +14,6 @@
 
 #include <yarp/os/Wire.h>
 #include <yarp/os/idl/WireTypes.h>
-#include <Direction.h>
-#include <ReturnStatus.h>
-#include <TickCommand.h>
 
 class BTMonitorMsg;
 
@@ -24,36 +21,30 @@ class BTMonitorMsg;
 class BTMonitorMsg : public yarp::os::idl::WirePortable {
 public:
   // Fields
-  std::string requestor;
+  std::string source;
   std::string target;
-  Direction direction;
-   ::TickCommand command;
-   ::ReturnStatus reply;
+  std::string event;
 
   // Default constructor
-  BTMonitorMsg() : requestor(""), target(""), direction((Direction)0), command(( ::TickCommand)0), reply(( ::ReturnStatus)0) {
+  BTMonitorMsg() : source(""), target(""), event("") {
   }
 
   // Constructor with field values
-  BTMonitorMsg(const std::string& requestor,const std::string& target,const Direction direction,const  ::TickCommand command,const  ::ReturnStatus reply) : requestor(requestor), target(target), direction(direction), command(command), reply(reply) {
+  BTMonitorMsg(const std::string& source,const std::string& target,const std::string& event) : source(source), target(target), event(event) {
   }
 
   // Copy constructor
   BTMonitorMsg(const BTMonitorMsg& __alt) : WirePortable(__alt)  {
-    this->requestor = __alt.requestor;
+    this->source = __alt.source;
     this->target = __alt.target;
-    this->direction = __alt.direction;
-    this->command = __alt.command;
-    this->reply = __alt.reply;
+    this->event = __alt.event;
   }
 
   // Assignment operator
   const BTMonitorMsg& operator = (const BTMonitorMsg& __alt) {
-    this->requestor = __alt.requestor;
+    this->source = __alt.source;
     this->target = __alt.target;
-    this->direction = __alt.direction;
-    this->command = __alt.command;
-    this->reply = __alt.reply;
+    this->event = __alt.event;
     return *this;
   }
 
@@ -64,26 +55,18 @@ public:
   bool write(yarp::os::ConnectionWriter& connection) const override;
 
 private:
-  bool write_requestor(const yarp::os::idl::WireWriter& writer) const;
-  bool nested_write_requestor(const yarp::os::idl::WireWriter& writer) const;
+  bool write_source(const yarp::os::idl::WireWriter& writer) const;
+  bool nested_write_source(const yarp::os::idl::WireWriter& writer) const;
   bool write_target(const yarp::os::idl::WireWriter& writer) const;
   bool nested_write_target(const yarp::os::idl::WireWriter& writer) const;
-  bool write_direction(const yarp::os::idl::WireWriter& writer) const;
-  bool nested_write_direction(const yarp::os::idl::WireWriter& writer) const;
-  bool write_command(const yarp::os::idl::WireWriter& writer) const;
-  bool nested_write_command(const yarp::os::idl::WireWriter& writer) const;
-  bool write_reply(const yarp::os::idl::WireWriter& writer) const;
-  bool nested_write_reply(const yarp::os::idl::WireWriter& writer) const;
-  bool read_requestor(yarp::os::idl::WireReader& reader);
-  bool nested_read_requestor(yarp::os::idl::WireReader& reader);
+  bool write_event(const yarp::os::idl::WireWriter& writer) const;
+  bool nested_write_event(const yarp::os::idl::WireWriter& writer) const;
+  bool read_source(yarp::os::idl::WireReader& reader);
+  bool nested_read_source(yarp::os::idl::WireReader& reader);
   bool read_target(yarp::os::idl::WireReader& reader);
   bool nested_read_target(yarp::os::idl::WireReader& reader);
-  bool read_direction(yarp::os::idl::WireReader& reader);
-  bool nested_read_direction(yarp::os::idl::WireReader& reader);
-  bool read_command(yarp::os::idl::WireReader& reader);
-  bool nested_read_command(yarp::os::idl::WireReader& reader);
-  bool read_reply(yarp::os::idl::WireReader& reader);
-  bool nested_read_reply(yarp::os::idl::WireReader& reader);
+  bool read_event(yarp::os::idl::WireReader& reader);
+  bool nested_read_event(yarp::os::idl::WireReader& reader);
 
 public:
 
@@ -134,12 +117,12 @@ public:
       group--;
       if (group==0&&is_dirty) communicate();
     }
-    void set_requestor(const std::string& requestor) {
-      will_set_requestor();
-      obj->requestor = requestor;
-      mark_dirty_requestor();
+    void set_source(const std::string& source) {
+      will_set_source();
+      obj->source = source;
+      mark_dirty_source();
       communicate();
-      did_set_requestor();
+      did_set_source();
     }
     void set_target(const std::string& target) {
       will_set_target();
@@ -148,52 +131,28 @@ public:
       communicate();
       did_set_target();
     }
-    void set_direction(const Direction direction) {
-      will_set_direction();
-      obj->direction = direction;
-      mark_dirty_direction();
+    void set_event(const std::string& event) {
+      will_set_event();
+      obj->event = event;
+      mark_dirty_event();
       communicate();
-      did_set_direction();
+      did_set_event();
     }
-    void set_command(const  ::TickCommand command) {
-      will_set_command();
-      obj->command = command;
-      mark_dirty_command();
-      communicate();
-      did_set_command();
-    }
-    void set_reply(const  ::ReturnStatus reply) {
-      will_set_reply();
-      obj->reply = reply;
-      mark_dirty_reply();
-      communicate();
-      did_set_reply();
-    }
-    const std::string& get_requestor() {
-      return obj->requestor;
+    const std::string& get_source() {
+      return obj->source;
     }
     const std::string& get_target() {
       return obj->target;
     }
-    const Direction get_direction() {
-      return obj->direction;
+    const std::string& get_event() {
+      return obj->event;
     }
-    const  ::TickCommand get_command() {
-      return obj->command;
-    }
-    const  ::ReturnStatus get_reply() {
-      return obj->reply;
-    }
-    virtual bool will_set_requestor() { return true; }
+    virtual bool will_set_source() { return true; }
     virtual bool will_set_target() { return true; }
-    virtual bool will_set_direction() { return true; }
-    virtual bool will_set_command() { return true; }
-    virtual bool will_set_reply() { return true; }
-    virtual bool did_set_requestor() { return true; }
+    virtual bool will_set_event() { return true; }
+    virtual bool did_set_source() { return true; }
     virtual bool did_set_target() { return true; }
-    virtual bool did_set_direction() { return true; }
-    virtual bool did_set_command() { return true; }
-    virtual bool did_set_reply() { return true; }
+    virtual bool did_set_event() { return true; }
     void clean() {
       dirty_flags(false);
     }
@@ -216,10 +175,10 @@ public:
     void mark_dirty() {
       is_dirty = true;
     }
-    void mark_dirty_requestor() {
-      if (is_dirty_requestor) return;
+    void mark_dirty_source() {
+      if (is_dirty_source) return;
       dirty_count++;
-      is_dirty_requestor = true;
+      is_dirty_source = true;
       mark_dirty();
     }
     void mark_dirty_target() {
@@ -228,40 +187,24 @@ public:
       is_dirty_target = true;
       mark_dirty();
     }
-    void mark_dirty_direction() {
-      if (is_dirty_direction) return;
+    void mark_dirty_event() {
+      if (is_dirty_event) return;
       dirty_count++;
-      is_dirty_direction = true;
-      mark_dirty();
-    }
-    void mark_dirty_command() {
-      if (is_dirty_command) return;
-      dirty_count++;
-      is_dirty_command = true;
-      mark_dirty();
-    }
-    void mark_dirty_reply() {
-      if (is_dirty_reply) return;
-      dirty_count++;
-      is_dirty_reply = true;
+      is_dirty_event = true;
       mark_dirty();
     }
     void dirty_flags(bool flag) {
       is_dirty = flag;
-      is_dirty_requestor = flag;
+      is_dirty_source = flag;
       is_dirty_target = flag;
-      is_dirty_direction = flag;
-      is_dirty_command = flag;
-      is_dirty_reply = flag;
-      dirty_count = flag ? 5 : 0;
+      is_dirty_event = flag;
+      dirty_count = flag ? 3 : 0;
     }
     bool is_dirty;
     int dirty_count;
-    bool is_dirty_requestor;
+    bool is_dirty_source;
     bool is_dirty_target;
-    bool is_dirty_direction;
-    bool is_dirty_command;
-    bool is_dirty_reply;
+    bool is_dirty_event;
   };
 };
 

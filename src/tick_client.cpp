@@ -17,6 +17,7 @@
 #include <yarp/os/LogStream.h>
 #include <yarp/os/PortablePair.h>
 
+#include <TickCommand.h>
 #include <include/tick_client.h>
 
 using namespace std;
@@ -78,11 +79,23 @@ bool TickClient::propagateToMonitor(TickCommand cmdType, Direction dir, const st
         yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
         BTMonitorMsg &msg = monitor.head;
 
-        msg.requestor = module_name_;
+        msg.source    = module_name_;
         msg.target    = serverName_;
-        msg.command   = cmdType;
-        msg.direction = dir;
-        msg.reply     = reply;
+        msg.event = "unknown";
+
+        if(cmdType == BT_TICK && Direction::REQUEST)
+            msg.event = "e_from_bt";
+        if(cmdType == BT_TICK && Direction::REPLY)
+            msg.event = "e_to_bt";
+
+        if(cmdType == BT_STATUS)
+            msg.event = "e_get_status";
+
+        if(cmdType == BT_HALT && Direction::REQUEST)
+            msg.event = "halt_from_bt";
+        if(cmdType == BT_HALT && Direction::REPLY)
+            msg.event = "halted_to_bt";
+
         monitor.body.addString(params);
         toMonitor->write(monitor);
     }
@@ -109,13 +122,13 @@ ReturnStatus TickClient::request_halt()
     if(status_ == BT_RUNNING)
     {
         // Propagate message to the monitor
-        propagateCmd(BT_TICK);
+        propagateCmd(BT_HALT);
 
         //I need halt the node
         BTCmd::request_halt();
 
         // Propagate reply to the monitor
-        propagateReply(BT_TICK, status_);
+        propagateReply(BT_HALT, status_);
     }
 }
 
