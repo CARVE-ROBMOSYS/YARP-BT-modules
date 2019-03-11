@@ -16,6 +16,7 @@
 #include <cstdlib>
 #include <string>
 #include <algorithm>
+#include <iostream>
 
 //YARP imports
 #include <yarp/os/all.h>
@@ -36,20 +37,22 @@ class TextToAction : public RFModule
     private:
     Port      speechTranscription_port;         // should be connected to ...
     RpcClient blackboard_port;                  // should be connected to /blackboard/rpc:i
-    std::string string1;
-    std::string string2;
+    std::string identifyCmd;
+    std::string forgetCmd;
+    std::string object;
     PolyDriver ddNavClient;
     INavigation2D* iNav;
+    bool setLocation{true};                    // use localization server to store position of objects
 
     public:
     TextToAction ()
     {
-        string1 = "this is the kitchen";
-        string1 = "forget room";
+        identifyCmd = "this is the";
+        forgetCmd = "forget the";
         iNav = 0;
     }
 
-    bool writeToBlackboard(bool flag_kitchen)
+    bool writeToBlackboard(bool identified, string &what)
     {
         if (blackboard_port.getOutputCount() < 1)
         {
@@ -62,9 +65,12 @@ class TextToAction : public RFModule
             cmd.clear();
             reply.clear();
             cmd.addString("set");
-            cmd.addString("RoomKnown");
-            if (flag_kitchen) cmd.addString("True");
-            else cmd.addString("False");
+            cmd.addString(what + string("Known"));
+            if (identified)
+                cmd.addString("True");
+            else
+                cmd.addString("False");
+
             blackboard_port.write(cmd, reply);
 
             if (reply.size() != 1)
@@ -78,7 +84,7 @@ class TextToAction : public RFModule
                 yError() << "writeOnBlackboard: invalid answer from blackboard: " << reply.get(0).toString();
                 return false;
             }
-            yInfo() << "RoomKnown written to blackboard";
+            yInfo() << what << " written to blackboard";
         }
 
         {
@@ -86,9 +92,12 @@ class TextToAction : public RFModule
             cmd.clear();
             reply.clear();
             cmd.addString("set");
-            cmd.addString("RobotAtRoom");
-            if (flag_kitchen) cmd.addString("True");
-            else cmd.addString("False");
+            cmd.addString(string("RobotAt")+what);
+            if (identified)
+                cmd.addString("True");
+            else
+                cmd.addString("False");
+
             blackboard_port.write(cmd, reply);
 
             if (reply.size() != 1)
@@ -105,6 +114,7 @@ class TextToAction : public RFModule
             yInfo() << "RobotInRoom written to blackboard";
         }
 
+        if(setLocation)
         {
             Map2DLocation loc;
             bool cp = iNav->getCurrentPosition(loc);
@@ -123,7 +133,7 @@ class TextToAction : public RFModule
             cmd.addString("set");
             cmd.addString("Room");
             string kitchen_coordinates;
-            if (flag_kitchen) kitchen_coordinates = loc.map_id + " " + std::to_string(loc.x) + " " + std::to_string(loc.y) + " " + std::to_string(loc.theta);
+            if (identified)   kitchen_coordinates = loc.map_id + " " + std::to_string(loc.x) + " " + std::to_string(loc.y) + " " + std::to_string(loc.theta);
             else              kitchen_coordinates = std::string("no_map") + " " + std::to_string(0.0) + " " + std::to_string(0.0) + " " + std::to_string(0.0);
             cmd.addString(kitchen_coordinates);
             blackboard_port.write(cmd, reply);
@@ -164,27 +174,32 @@ class TextToAction : public RFModule
            return false;
         }
 
-        //navigation polyDriver
-        Property        navCfg;
-        navCfg.put("device", "navigation2DClient");
-        navCfg.put("local", "/robotPathPlannerExample");
-        navCfg.put("navigation_server", "/navigationServer");
-        navCfg.put("map_locations_server", "/mapServer");
-        navCfg.put("localization_server", "/localizationServer");
-        bool ok = ddNavClient.open(navCfg);
-        if (!ok)
-        {
-            yError() << "Unable to open navigation2DClient device driver";
-            return false;
-        }
+        if(rf.check("noLocation"))
+            setLocation = false;
 
-        ok = ddNavClient.view(iNav);
-        if (!ok)
+        if(setLocation)
         {
-            yError() << "Unable to open INavigation2D interface";
-            return false;
-        }
+            //navigation polyDriver
+            Property        navCfg;
+            navCfg.put("device", "navigation2DClient");
+            navCfg.put("local", "/robotPathPlannerExample");
+            navCfg.put("navigation_server", "/navigationServer");
+            navCfg.put("map_locations_server", "/mapServer");
+            navCfg.put("localization_server", "/localizationServer");
+            bool ok = ddNavClient.open(navCfg);
+            if (!ok)
+            {
+                yError() << "Unable to open navigation2DClient device driver";
+                return false;
+            }
 
+            ok = ddNavClient.view(iNav);
+            if (!ok)
+            {
+                yError() << "Unable to open INavigation2D interface";
+                return false;
+            }
+        }
         return true;
     }
 
@@ -201,14 +216,20 @@ class TextToAction : public RFModule
         speechTranscription_port.read(transc_bot); //blocking
         if (transc_bot.get(0).isString())
         {
+            int i=0;
             std::string transc = transc_bot.get(0).asString();
-            yDebug() << "Received text: '" << transc;
-            std::transform(transc.begin(), transc.end(), transc.begin(), ::tolower);
-            std::transform(string1.begin(), string1.end(), string1.begin(), ::tolower);
-            if (transc == string1)
+            for(i=1; i< transc_bot.size() -1; i++)
             {
-                yDebug() << "Text: '" << transc << "' has been recognized. Writing data on blackboard.";
-                bool ret = this->writeToBlackboard(true);
+                transc += " " + transc_bot.get(i).asString();
+            }
+            object = transc_bot.get(i).asString();
+            std::cout << "Received text: '" << transc << " <" << object << ">" << std::endl;
+            std::transform(transc.begin(), transc.end(), transc.begin(), ::tolower);
+
+            if (transc == identifyCmd)
+            {
+                std::cout << "Text: '" << transc << " <" << object << ">' has been recognized. Writing data on blackboard." << std::endl;
+                bool ret = this->writeToBlackboard(true, object);
                 if (ret)
                 {
                     yInfo() << "writeToBlackboard() successful";
@@ -218,10 +239,10 @@ class TextToAction : public RFModule
                     yError() << "writeToBlackboard() failed";
                 }
             }
-            else if (transc == string2)
+            else if (transc == forgetCmd)
             {
-                yDebug() << "Text: '" << transc << "' has been recognized. Writing data on blackboard.";
-                bool ret = this->writeToBlackboard(false);
+                std::cout << "Text: '" << transc << " <" << object << ">' has been recognized. Writing data on blackboard." << std::endl;
+                bool ret = this->writeToBlackboard(false, object);
                 if (ret)
                 {
                     yInfo() << "writeToBlackboard() successful";
