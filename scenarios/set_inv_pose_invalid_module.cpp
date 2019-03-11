@@ -40,7 +40,7 @@ public:
     {
         set_status(BT_RUNNING);
 
-        yInfo() << "[GotoInvPose] Action started";
+        yInfo() << "[Set invalid pose] Action started";
         cmd.clear();
         response.clear();
         cmd.addString("set");
@@ -48,10 +48,37 @@ public:
         cmd.addString("False");
         blackboard_port.write(cmd,response);
         set_status(BT_SUCCESS);
+
+        cmd.clear();
+        response.clear();
+        cmd.addString("set");
+        cmd.addString("InvPoseComputed");
+        cmd.addString("False");
+        blackboard_port.write(cmd,response);
+
+        cmd.clear();
+        response.clear();
+        cmd.addString("set");
+        cmd.addString("InvPose");
+        cmd.addString("nope 0 0 0");
+        blackboard_port.write(cmd,response);
+
+        cmd.clear();
+        response.clear();
+        cmd.addString("set");
+        cmd.addString("RobotAtInvPose");
+        cmd.addString("False");
+        blackboard_port.write(cmd,response);
+        return BT_SUCCESS;
+
+        cmd.clear();
+        response.clear();
+        cmd.addString("set");
+        cmd.addString("BottleLocated");
+        cmd.addString("False");
+        blackboard_port.write(cmd,response);
         return BT_SUCCESS;
     }
-
-
 };
 
 

@@ -13,6 +13,7 @@
 //standard imports
 #include <iostream>                 // for std::cout
 #include <chrono>
+#include <random>
 
 //YARP imports
 #include <yarp/os/Network.h>        // for yarp::os::Network
@@ -40,7 +41,48 @@ public:
         set_status(BT_RUNNING);
         bool ret = false;
         yInfo() << "[ComputeInvPose] Action started";
-        std::string inv_pose = "sanquirico 11.0328 1.8928 -13.0545";
+
+        static bool first = true;
+        static bool toggle = true;
+
+        double randAngle = 0;
+
+        double randX =  11.19;
+        /*
+        // generate random number
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        double min_x{5}, max_x{+30};
+        std::uniform_real_distribution<double> dis_theta(min_x, max_x);
+        std::uniform_real_distribution<double> dis_x(0, 0.2);
+
+        if(first)
+        {
+            yInfo() << "first";
+            randAngle = 0;
+            first     = false;
+        }
+        else
+        {
+            yInfo() << "toggle " << toggle;
+            toggle ? randAngle = dis_theta(gen) : randAngle = -dis_theta(gen);
+            toggle = !toggle;
+        }
+        // create string
+        std::ostringstream strsX, strsTheta;
+        std::string strX, strTheta;
+        strsX << randX;
+        strX= strsX.str();
+
+        strsTheta << randAngle;
+        strTheta = strsTheta.str();
+        std::string inv_pose = "sanquirico 11.18 1.90 " + strTheta;
+        */
+
+        // without random
+        std::string inv_pose = "sanquirico 11.18 1.90 0.0";
+
+        // create command
         cmd.clear();
         response.clear();
         cmd.addString("set");
@@ -66,6 +108,16 @@ public:
         cmd.addString("True");
         ret = blackboard_port.write(cmd,response);
         yInfo() << "[InvPoseValid] InvPose is set to True" << " ret value " << ret;
+
+        // Invalidating robot at inv pose
+        cmd.clear();
+        response.clear();
+        cmd.addString("set");
+        cmd.addString("RobotAtInvPose");
+        cmd.addString("False");
+        ret = blackboard_port.write(cmd,response);
+        yInfo() << "[RobotAtInvPose] is set to False" << " ret value " << ret;
+
 
         set_status(BT_SUCCESS);
         return BT_SUCCESS;
