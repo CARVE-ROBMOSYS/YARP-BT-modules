@@ -34,7 +34,7 @@ TickClient::~TickClient()
     toMonitor->close();
 }
 
-bool TickClient::configure(std::string name)
+bool TickClient::configure(std::string name, bool monitor)
 {
     bool ret = true;
     module_name_ = name;
@@ -45,8 +45,9 @@ bool TickClient::configure(std::string name)
         return false;
     }
 
-    if(useMonitor)
+    if(monitor)
     {
+        useMonitor = true;
         toMonitor = std::make_unique<yarp::os::Port>();
         ret = toMonitor->open(module_name_ + "/monitor:o");
     }
@@ -83,17 +84,17 @@ bool TickClient::propagateToMonitor(TickCommand cmdType, Direction dir, const st
         msg.target    = serverName_;
         msg.event = "unknown";
 
-        if(cmdType == BT_TICK && Direction::REQUEST)
-            msg.event = "e_from_bt";
-        if(cmdType == BT_TICK && Direction::REPLY)
+        if((cmdType == BT_TICK) && (Direction::REQUEST == dir))
+            msg.event = "e_from_bt"; 
+        if((cmdType == BT_TICK) && (Direction::REPLY == dir))
             msg.event = "e_to_bt";
 
         if(cmdType == BT_STATUS)
             msg.event = "e_get_status";
 
-        if(cmdType == BT_HALT && Direction::REQUEST)
+        if((cmdType == BT_HALT) && (Direction::REQUEST == dir))
             msg.event = "halt_from_bt";
-        if(cmdType == BT_HALT && Direction::REPLY)
+        if((cmdType == BT_HALT) && (Direction::REPLY == dir))
             msg.event = "halted_to_bt";
 
         monitor.body.addString(params);
@@ -106,6 +107,7 @@ ReturnStatus TickClient::request_tick(const std::string &params)
 //    yTrace() << "\n\t params " << params << " threaded " << threaded;
 
     // Propagate message to the monitor
+    yInfo() << " propagate command";
     propagateCmd(BT_TICK, params);
 
     // Send the actual message to the server
@@ -117,7 +119,7 @@ ReturnStatus TickClient::request_tick(const std::string &params)
     return status_;
 }
 
-ReturnStatus TickClient::request_halt()
+ReturnStatus TickClient::request_halt(const string &params)
 {
     if(status_ == BT_RUNNING)
     {
@@ -125,7 +127,7 @@ ReturnStatus TickClient::request_halt()
         propagateCmd(BT_HALT);
 
         //I need halt the node
-        BTCmd::request_halt();
+        BTCmd::request_halt(params);
 
         // Propagate reply to the monitor
         propagateReply(BT_HALT, status_);

@@ -22,6 +22,7 @@
 
 //behavior trees imports
 #include <include/tick_server.h>
+#include <BTMonitorMsg.h>
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -34,6 +35,7 @@ class LocateBottle : public RFModule, public TickServer
     RpcClient point_cloud_read_port; // should be connected to /pointCloudRead/rpc
     RpcClient find_superquadric_port; // should be connected to /find-superquadric/points:rpc
     RpcClient blackboard_port; // should be connected to /blackboard/rpc:i
+    Port toMonitor_port;
 
     /****************************************************************/
     bool getObjectPosition(const std::string &objectName, Vector &position)
@@ -461,6 +463,16 @@ class LocateBottle : public RFModule, public TickServer
             return BT_FAILURE;
         }
 
+        // send message to monitor: we are done with it
+        yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
+        BTMonitorMsg &msg = monitor.head;
+        msg = monitor.head;
+        msg.source    = getName();
+        msg.target    = "yarp grasp module";
+        msg.event     = "e_req";
+        monitor.body.addString(objectName);
+        toMonitor_port.write(monitor);
+
         this->set_status(BT_SUCCESS);
         return BT_SUCCESS;
     }
@@ -507,6 +519,8 @@ class LocateBottle : public RFModule, public TickServer
            return false;
         }
 
+        // to connect to relative monitor
+        toMonitor_port.open("/"+this->getName()+"/monitor:o");
         return true;
     }
 

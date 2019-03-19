@@ -24,7 +24,7 @@ public:
   BTCmd();
   virtual ReturnStatus request_tick(const std::string& params = "");
   virtual ReturnStatus request_status();
-  virtual ReturnStatus request_halt();
+  virtual ReturnStatus request_halt(const std::string& params = "");
   bool read(yarp::os::ConnectionReader& connection) override;
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

@@ -26,6 +26,7 @@
 
 //behavior trees imports
 #include <include/tick_server.h>
+#include <BTMonitorMsg.h>
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -37,10 +38,21 @@ private:
     RpcClient grasp_module_port; // default name /GraspBottle/grasping/rpc:o, should be connected to /graspProcessor/cmd:rpc
     RpcClient grasp_module_start_halt_port; // default name /GraspBottle/graspingStartHalt/rpc:o should be connected to /graspProcessor/cmd:rpc (optional)
     RpcClient blackboard_port; // default name /GraspBottle/blackboard/rpc:o,  should be connected to /blackboard/rpc:i
+    Port toMonitor_port;
 
 public:
     ReturnStatus execute_tick(const std::string& objectName = "") override
     {
+          // This message has to be sent by the BT engine (or dispatcher where present)
+//        yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
+//        BTMonitorMsg &msg = monitor.head;
+//        msg.source    = getName();
+//        msg.target    = "yarp grasp module";
+//        msg.event     = "e_from_bt";
+//        monitor.body.addString(objectName);
+//        toMonitor_port.write(monitor);
+
+        // do stuff
         this->set_status(BT_RUNNING);
 
         std::string object;
@@ -86,31 +98,36 @@ public:
         cmd.addString(object);
         cmd.addString("right");
 
-        std::future<Bottle> future = std::async(std::launch::async, [this, cmd]{
-                Bottle replyLocal;
-                grasp_module_port.write(cmd, replyLocal);
-                return replyLocal;
-            });
+//        std::future<Bottle> future = std::async(std::launch::async, [this, cmd]{
+//                Bottle replyLocal;
+//                grasp_module_port.write(cmd, replyLocal);
+//                return replyLocal;
+//            });
 
-        std::future_status status;
-        do
-        {
-            status = future.wait_for(std::chrono::milliseconds(10));
+//        std::future_status status;
+//        do
+//        {
+//            status = future.wait_for(std::chrono::milliseconds(10));
 
-            // waiting for execute_grasp_thread to finish and stop it if necessary
-            if(this->getHalted())
-            {
-                Bottle cmdStartHalt, replyStartHalt;
-                cmdStartHalt.addString("halt");
-                grasp_module_start_halt_port.write(cmdStartHalt, replyStartHalt);
-                future.wait();
-                this->set_status(BT_HALTED);
-                return BT_HALTED;
-            }
-        }
-        while(status != std::future_status::ready);
+//            // waiting for execute_grasp_thread to finish and stop it if necessary
+//            if(this->getHalted())
+//            {
+//                Bottle cmdStartHalt, replyStartHalt;
+//                cmdStartHalt.addString("halt");
+//                grasp_module_start_halt_port.write(cmdStartHalt, replyStartHalt);
+//                future.wait();
+//                this->set_status(BT_HALTED);
+//                return BT_HALTED;
+//            }
+//        }
+//        while(status != std::future_status::ready);
+//        Bottle reply = future.get();
+//        if(reply.size() != 1) {...}
 
-        Bottle reply = future.get();
+        // The tickServer is run in threaded mode, so the action can be blocking.
+        // Halting is handled by 'request_halt' callback.
+        Bottle reply;
+        grasp_module_port.write(cmd, reply);
 
         if(reply.size() != 1)
         {
@@ -160,8 +177,30 @@ public:
 
         yInfo() << object+"Grasped written to blackboard";
 
+        // send message to monitor: we are done with it
+        yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
+        BTMonitorMsg &msg = monitor.head;
+        msg = monitor.head;
+        msg.source    = getName();
+        msg.target    = "yarp grasp module";
+        msg.event     = "e_req";
+        monitor.body.addString(objectName);
+        toMonitor_port.write(monitor);
+
         this->set_status(BT_SUCCESS);
         return BT_SUCCESS;
+    }
+
+    void execute_halt()
+    {
+        yTrace() << "GraspBottle Halt action received!";
+
+        Bottle cmdStartHalt, replyStartHalt;
+        cmdStartHalt.addString("halt");
+        grasp_module_start_halt_port.write(cmdStartHalt, replyStartHalt);
+//        future.wait();
+        this->set_status(BT_HALTED);
+//        return BT_HALTED;
     }
 
     /****************************************************************/
@@ -192,6 +231,8 @@ public:
            return false;
         }
 
+        // to connect to relative monitor
+        toMonitor_port.open("/"+this->getName()+"/monitor:o");
         return true;
     }
 

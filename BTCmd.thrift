@@ -26,5 +26,5 @@ enum ReturnStatus {BT_RUNNING, BT_SUCCESS, BT_FAILURE, BT_IDLE, BT_HALTED, BT_ER
 service BTCmd {
   ReturnStatus request_tick(1:string params = "");
   ReturnStatus request_status();
-  ReturnStatus request_halt();
+  ReturnStatus request_halt(1:string params = "");
 }

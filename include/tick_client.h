@@ -18,7 +18,7 @@
 #include <atomic>
 
 #include <yarp/os/Port.h>
-#include <include/BTCmd.h>
+#include <BTCmd.h>
 #include <TickCommand.h>
 #include <Direction.h>
 #include <BTMonitorMsg.h>
@@ -36,7 +36,7 @@ public:
      * *            will be appended to 'aame' param
      * @return true if port was succesfully opened, false if error
      */
-    bool configure(std::string name);
+    bool configure(std::string name,  bool monitor=false);
 
     /**
      * @brief connect   Connect tick client to remote tick server
@@ -47,9 +47,9 @@ public:
     bool connect(const std::string serverName);
 
     //Thrift services inherited from BTCmd
-    ReturnStatus request_tick(const std::string &params = "");
-    ReturnStatus request_status();
-    ReturnStatus request_halt();
+    ReturnStatus request_tick(const std::string &params = "") override;
+    ReturnStatus request_status() override;
+    ReturnStatus request_halt(const std::string &params = "") override;
 
 private:
     std::string module_name_;

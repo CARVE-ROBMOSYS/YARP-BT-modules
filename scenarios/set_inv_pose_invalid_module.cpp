@@ -47,8 +47,8 @@ public:
         cmd.addString("InvPoseValid");
         cmd.addString("False");
         blackboard_port.write(cmd,response);
-        set_status(BT_SUCCESS);
-
+        // This module always returns running, as from @miccol specifications
+        return BT_RUNNING;
         cmd.clear();
         response.clear();
         cmd.addString("set");
@@ -62,7 +62,6 @@ public:
         cmd.addString("InvPose");
         cmd.addString("nope 0 0 0");
         blackboard_port.write(cmd,response);
-
         cmd.clear();
         response.clear();
         cmd.addString("set");
