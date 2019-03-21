@@ -23,6 +23,8 @@
 
 //behavior trees imports
 #include <include/tick_server.h>
+#include <BTMonitorMsg.h>
+#include <yarp/os/PortablePair.h>
 
 
 using namespace yarp::os;
@@ -32,6 +34,8 @@ class SetInvPoseInvalid : public TickServer
 {
 private:
     Bottle cmd, response;
+    Port toMonitor_port;
+
 public:
     yarp::os::Port blackboard_port;
 
@@ -40,6 +44,19 @@ public:
     {
         set_status(BT_RUNNING);
 
+        if(blackboard_port.getOutputCount() > 0)
+        {
+            // send message to monitor: we are doing stuff
+            yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
+            BTMonitorMsg &msg = monitor.head;
+            msg = monitor.head;
+            msg.source    = "setInvPoseInvalid";
+            msg.target    = "blackboard";
+            msg.event     = "e_req";
+            monitor.body.addString(params);
+            toMonitor_port.write(monitor);
+        }
+
         yInfo() << "[Set invalid pose] Action started";
         cmd.clear();
         response.clear();
@@ -47,8 +64,7 @@ public:
         cmd.addString("InvPoseValid");
         cmd.addString("False");
         blackboard_port.write(cmd,response);
-        // This module always returns running, as from @miccol specifications
-        return BT_RUNNING;
+
         cmd.clear();
         response.clear();
         cmd.addString("set");
@@ -68,7 +84,6 @@ public:
         cmd.addString("RobotAtInvPose");
         cmd.addString("False");
         blackboard_port.write(cmd,response);
-        return BT_SUCCESS;
 
         cmd.clear();
         response.clear();
@@ -76,7 +91,20 @@ public:
         cmd.addString("BottleLocated");
         cmd.addString("False");
         blackboard_port.write(cmd,response);
-        return BT_SUCCESS;
+
+        {
+        // send message to monitor: we are done
+        yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
+        BTMonitorMsg &msg = monitor.head;
+        msg = monitor.head;
+        msg.source    = "blackboard";
+        msg.target    = "setInvPoseInvalid";
+        msg.event     = "e_from_env";
+        toMonitor_port.write(monitor);
+        }
+
+        // This module always returns running, as from @miccol specifications
+        return BT_RUNNING;
     }
 };
 

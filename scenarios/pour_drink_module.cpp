@@ -26,6 +26,8 @@
 
 //behavior trees imports
 #include <include/tick_server.h>
+#include <BTMonitorMsg.h>
+#include <yarp/os/PortablePair.h>
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -36,6 +38,7 @@ private:
 
     RpcClient action_module_port; // default name /PourDrink/action/rpc:o, should be connected to /action-gateway/cmd:io
     RpcClient blackboard_port; // default name /PourDrink/blackboard/rpc:o,  should be connected to /blackboard/rpc:i
+    Port toMonitor_port;
 
 public:
     ReturnStatus execute_tick(const std::string& params = "") override
@@ -57,6 +60,19 @@ public:
             {
                 yError() << "execute_tick: invalid first parameter. Should be a string (target name).";
             }
+        }
+
+        if(action_module_port.getOutputCount()<1)
+        {
+            // send message to monitor: we are doing stuff
+            yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
+            BTMonitorMsg &msg = monitor.head;
+            msg = monitor.head;
+            msg.source    = getName();
+            msg.target    = "env";
+            msg.event     = "e_req";
+            monitor.body.addString(params);
+            toMonitor_port.write(monitor);
         }
 
         //connects to the blackboard to retrieve the glass top position in ref frame
@@ -219,6 +235,18 @@ public:
         }
 
         yInfo() << "PouringDone set to True in the blackboard";
+
+        {
+        // send message to monitor: we are done with it
+        yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
+        BTMonitorMsg &msg = monitor.head;
+        msg = monitor.head;
+        msg.source    = "env";
+        msg.target    = getName();
+        msg.event     = "e_from_env";
+        monitor.body.addString(params);
+        toMonitor_port.write(monitor);
+        }
 
         this->set_status(BT_SUCCESS);
         return BT_SUCCESS;

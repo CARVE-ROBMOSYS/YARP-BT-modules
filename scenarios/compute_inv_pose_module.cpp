@@ -24,6 +24,8 @@
 
 //behavior trees imports
 #include <include/tick_server.h>
+#include <BTMonitorMsg.h>
+#include <yarp/os/PortablePair.h>
 
 using namespace yarp::os;
 using namespace yarp::dev;
@@ -32,8 +34,8 @@ class ComputeInvPose : public TickServer, public RFModule
 {
 private:
     Bottle cmd, response;
-public:
     yarp::os::Port blackboard_port;
+    Port toMonitor_port;
 
 public:
     ReturnStatus execute_tick(const std::string& params = "") override
@@ -82,6 +84,20 @@ public:
         // without random
         std::string inv_pose = "sanquirico 11.18 1.90 0.0";
 
+
+        if(blackboard_port.getOutputCount() > 0)
+        {
+            // send message to monitor: we are doing stuff
+            yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
+            BTMonitorMsg &msg = monitor.head;
+            msg = monitor.head;
+            msg.source    = getName();
+            msg.target    = "blackboard";
+            msg.event     = "e_req";
+            monitor.body.addString(params);
+            toMonitor_port.write(monitor);
+        }
+
         // create command
         cmd.clear();
         response.clear();
@@ -119,8 +135,28 @@ public:
         yInfo() << "[RobotAtInvPose] is set to False" << " ret value " << ret;
 
 
+        {
+        // send message to monitor: we are done
+        yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
+        BTMonitorMsg &msg = monitor.head;
+        msg = monitor.head;
+        msg.source    = "blackboard";
+        msg.target    = getName();
+        msg.event     = "e_from_env";
+        toMonitor_port.write(monitor);
+        }
         set_status(BT_SUCCESS);
         return BT_SUCCESS;
+    }
+
+    bool configure(ResourceFinder &rf) override
+    {
+        this->configure_tick_server("/"+this->getName());
+        blackboard_port.open("/"+this->getName() + "/blackboard/rpc:o");
+
+        // to connect to relative monitor
+        toMonitor_port.open("/"+this->getName()+"/monitor:o");
+        return true;
     }
 
     double getPeriod()
@@ -155,13 +191,10 @@ int main(int argc, char * argv[])
 
 
     yarp::os::ResourceFinder rf;
-
     rf.configure(argc, argv);
 
     ComputeInvPose skill;
-    skill.configure_tick_server("/ComputeInvPose");
-    skill.blackboard_port.open("/ComputeInvPose/blackboard/rpc:o");
+    skill.setName("ComputeInvPose");
     skill.runModule(rf);
-
     return 0;
 }

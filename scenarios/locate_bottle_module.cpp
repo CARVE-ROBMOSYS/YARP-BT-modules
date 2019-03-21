@@ -374,11 +374,22 @@ class LocateBottle : public RFModule, public TickServer
             }
         }
 
-        if(this->getHalted())
-        {
-            this->set_status(BT_HALTED);
-            return BT_HALTED;
-        }
+        // check required connections are up and running
+        if( (object_properties_collector_port.getOutputCount() > 0) &&
+            (gaze_exploration_port.getOutputCount() > 0) &&
+            (point_cloud_read_port.getOutputCount() > 0) &&
+            (find_superquadric_port.getOutputCount() > 0) )
+            {
+                // send message to monitor: we are doing stuff
+                yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
+                BTMonitorMsg &msg = monitor.head;
+                msg = monitor.head;
+                msg.source    = getName();
+                msg.target    = "env";
+                msg.event     = "e_req";
+                monitor.body.addString(objectName);
+                toMonitor_port.write(monitor);
+            }
 
         Vector position3D;
         bool objectLocated = false;
@@ -467,9 +478,9 @@ class LocateBottle : public RFModule, public TickServer
         yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
         BTMonitorMsg &msg = monitor.head;
         msg = monitor.head;
-        msg.source    = getName();
-        msg.target    = "yarp grasp module";
-        msg.event     = "e_req";
+        msg.source    = "env";
+        msg.target    = getName();
+        msg.event     = "e_from_env";
         monitor.body.addString(objectName);
         toMonitor_port.write(monitor);
 
