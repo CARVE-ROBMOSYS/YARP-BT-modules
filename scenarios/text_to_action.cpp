@@ -42,7 +42,7 @@ class TextToAction : public RFModule
     std::string object;
     PolyDriver ddNavClient;
     INavigation2D* iNav;
-    bool setLocation{true};                    // use localization server to store position of objects
+    bool setLocation{false};                    // use localization server to store position of objects
 
     public:
     TextToAction ()
@@ -87,6 +87,8 @@ class TextToAction : public RFModule
             yInfo() << what << " written to blackboard";
         }
 
+/*      // RobotAtRoom is not set anymore, the robot will start a navigation action after
+        // it get the voice command.
         {
             Bottle cmd, reply;
             cmd.clear();
@@ -113,6 +115,7 @@ class TextToAction : public RFModule
             }
             yInfo() << "RobotInRoom written to blackboard";
         }
+*/
 
         if(setLocation)
         {
