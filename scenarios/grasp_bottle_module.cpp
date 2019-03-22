@@ -27,6 +27,7 @@
 //behavior trees imports
 #include <include/tick_server.h>
 #include <BTMonitorMsg.h>
+#include <yarp/os/PortablePair.h>
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -43,17 +44,20 @@ private:
 public:
     ReturnStatus execute_tick(const std::string& objectName = "") override
     {
-          // This message has to be sent by the BT engine (or dispatcher where present)
-//        yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
-//        BTMonitorMsg &msg = monitor.head;
-//        msg.source    = getName();
-//        msg.target    = "yarp grasp module";
-//        msg.event     = "e_from_bt";
-//        monitor.body.addString(objectName);
-//        toMonitor_port.write(monitor);
-
         // do stuff
         this->set_status(BT_RUNNING);
+
+        {
+        // send message to monitor: we are doing stuff
+        yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
+        BTMonitorMsg &msg = monitor.head;
+        msg = monitor.head;
+        msg.source    = getName();
+        msg.target    = "iol";
+        msg.event     = "e_req";
+        monitor.body.addString(objectName);
+        toMonitor_port.write(monitor);
+        }
 
         std::string object;
         if(objectName == "") object = "Bottle";
@@ -177,15 +181,17 @@ public:
 
         yInfo() << object+"Grasped written to blackboard";
 
+        {
         // send message to monitor: we are done with it
         yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
         BTMonitorMsg &msg = monitor.head;
         msg = monitor.head;
-        msg.source    = getName();
-        msg.target    = "yarp grasp module";
-        msg.event     = "e_req";
+        msg.source    = "env";
+        msg.target    = getName();
+        msg.event     = "e_from_env";
         monitor.body.addString(objectName);
         toMonitor_port.write(monitor);
+        }
 
         this->set_status(BT_SUCCESS);
         return BT_SUCCESS;
@@ -260,7 +266,7 @@ public:
         grasp_module_port.interrupt();
         grasp_module_start_halt_port.interrupt();
         blackboard_port.interrupt();
-
+        toMonitor_port.interrupt();
         return true;
     }
 
@@ -270,7 +276,7 @@ public:
         grasp_module_port.close();
         grasp_module_start_halt_port.close();
         blackboard_port.close();
-
+        toMonitor_port.close();
         return true;
     }
 };

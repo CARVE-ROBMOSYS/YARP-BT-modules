@@ -34,15 +34,16 @@ class SetInvPoseInvalid : public TickServer
 {
 private:
     Bottle cmd, response;
-    Port toMonitor_port;
 
 public:
+    Port toMonitor_port;
     yarp::os::Port blackboard_port;
 
 public:
     ReturnStatus execute_tick(const std::string& params = "") override
     {
         set_status(BT_RUNNING);
+        yInfo() << "[Set invalid pose] Action started";
 
         if(blackboard_port.getOutputCount() > 0)
         {
@@ -57,7 +58,6 @@ public:
             toMonitor_port.write(monitor);
         }
 
-        yInfo() << "[Set invalid pose] Action started";
         cmd.clear();
         response.clear();
         cmd.addString("set");
@@ -122,6 +122,7 @@ int main(int argc, char * argv[])
     SetInvPoseInvalid skill;
     skill.configure_tick_server("/setInvPoseInvalid");
     skill.blackboard_port.open("/setInvPoseInvalid/blackboard/rpc:o");
+    skill.toMonitor_port.open("/setInvPoseInvalid/monitor:o");
 
     /*
         std::cout << "Action ready. To send commands to the action, open and type: yarp rpc /setInvPoseInvalid/tick:i,"
