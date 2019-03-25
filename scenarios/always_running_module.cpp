@@ -24,7 +24,6 @@
 //behavior trees imports
 #include <include/tick_server.h>
 #include <BTMonitorMsg.h>
-#include <yarp/os/PortablePair.h>
 
 using namespace yarp::os;
 using namespace std;
@@ -39,14 +38,10 @@ public:
         set_status(BT_RUNNING);
 
         // send message to monitor: we are done with it
-        yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
-        BTMonitorMsg &msg = monitor.head;
-        msg = monitor.head;
-        msg.source    = "AlwaysRunning";
-        msg.target    = "none";
+        BTMonitorMsg msg;
+        msg.skill    = "AlwaysRunning";
         msg.event     = "e_req";
-        monitor.body.addString(params);
-        toMonitor_port.write(monitor);
+        toMonitor_port.write(msg);
 
         yInfo() << "[AlwaysRunning] Action started";
         return BT_RUNNING;

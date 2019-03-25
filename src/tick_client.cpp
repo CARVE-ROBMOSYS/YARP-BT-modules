@@ -80,8 +80,7 @@ bool TickClient::propagateToMonitor(TickCommand cmdType, Direction dir, const st
         yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
         BTMonitorMsg &msg = monitor.head;
 
-        msg.source    = module_name_;
-        msg.target    = serverName_;
+        msg.skill    = module_name_;
         msg.event = "unknown";
 
         if((cmdType == BT_TICK) && (Direction::REQUEST == dir))

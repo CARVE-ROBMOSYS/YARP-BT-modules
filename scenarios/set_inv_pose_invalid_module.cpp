@@ -45,25 +45,21 @@ public:
         set_status(BT_RUNNING);
         yInfo() << "[Set invalid pose] Action started";
 
-        if(blackboard_port.getOutputCount() > 0)
-        {
-            // send message to monitor: we are doing stuff
-            yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
-            BTMonitorMsg &msg = monitor.head;
-            msg = monitor.head;
-            msg.source    = "setInvPoseInvalid";
-            msg.target    = "blackboard";
-            msg.event     = "e_req";
-            monitor.body.addString(params);
-            toMonitor_port.write(monitor);
-        }
-
         cmd.clear();
         response.clear();
         cmd.addString("set");
         cmd.addString("InvPoseValid");
         cmd.addString("False");
-        blackboard_port.write(cmd,response);
+        bool ret = blackboard_port.write(cmd,response);
+
+        if(ret)
+        {
+            // send message to monitor: we are doing stuff
+            BTMonitorMsg msg;
+            msg.skill     = "setInvPoseInvalid";
+            msg.event     = "e_req";
+            toMonitor_port.write(msg);
+        }
 
         cmd.clear();
         response.clear();
@@ -90,17 +86,17 @@ public:
         cmd.addString("set");
         cmd.addString("BottleLocated");
         cmd.addString("False");
-        blackboard_port.write(cmd,response);
+        ret = blackboard_port.write(cmd,response);
 
+        if(ret)
         {
-        // send message to monitor: we are done
-        yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
-        BTMonitorMsg &msg = monitor.head;
-        msg = monitor.head;
-        msg.source    = "blackboard";
-        msg.target    = "setInvPoseInvalid";
-        msg.event     = "e_from_env";
-        toMonitor_port.write(monitor);
+            // send message to monitor: we are done
+            yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
+            BTMonitorMsg &msg = monitor.head;
+            msg = monitor.head;
+            msg.skill     = "setInvPoseInvalid";
+            msg.event     = "e_from_env";
+            toMonitor_port.write(monitor);
         }
 
         // This module always returns running, as from @miccol specifications

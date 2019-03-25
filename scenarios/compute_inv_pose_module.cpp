@@ -84,20 +84,6 @@ public:
         // without random
         std::string inv_pose = "sanquirico 11.18 1.90 0.0";
 
-
-        if(blackboard_port.getOutputCount() > 0)
-        {
-            // send message to monitor: we are doing stuff
-            yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
-            BTMonitorMsg &msg = monitor.head;
-            msg = monitor.head;
-            msg.source    = getName();
-            msg.target    = "blackboard";
-            msg.event     = "e_req";
-            monitor.body.addString(params);
-            toMonitor_port.write(monitor);
-        }
-
         // create command
         cmd.clear();
         response.clear();
@@ -106,6 +92,15 @@ public:
         cmd.addString(inv_pose);
         ret = blackboard_port.write(cmd,response);
         yInfo() << "[ComputeInvPose] InvPose is set to" << inv_pose << " ret value " << ret;
+
+        if(ret)
+        {
+            // send message to monitor: we are doing stuff
+            BTMonitorMsg msg;
+            msg.skill    = getName();
+            msg.event     = "e_req";
+            toMonitor_port.write(msg);
+        }
 
         // writing on the blackboard that the inv pose is computed (to make the condition "is InvPoseComputed" simple)
         cmd.clear();
@@ -134,16 +129,13 @@ public:
         ret = blackboard_port.write(cmd,response);
         yInfo() << "[RobotAtInvPose] is set to False" << " ret value " << ret;
 
-
+        if(ret)
         {
-        // send message to monitor: we are done
-        yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
-        BTMonitorMsg &msg = monitor.head;
-        msg = monitor.head;
-        msg.source    = "blackboard";
-        msg.target    = getName();
-        msg.event     = "e_from_env";
-        toMonitor_port.write(monitor);
+            // send message to monitor: we are done
+            BTMonitorMsg msg;
+            msg.skill    = getName();
+            msg.event     = "e_from_env";
+            toMonitor_port.write(msg);
         }
         set_status(BT_SUCCESS);
         return BT_SUCCESS;

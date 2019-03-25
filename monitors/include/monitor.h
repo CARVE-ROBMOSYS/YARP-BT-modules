@@ -63,7 +63,6 @@ private:
     // callback for event port
     bool read(yarp::os::ConnectionReader& connection);
 
-    yarp::os::PortablePair<BTMonitorMsg, yarp::os::Bottle> monitorMsg;
     yarp::os::Port event_port_; // a port to handle event messages
     yarp::os::Port state_port_; // a port to rpc requests
     rfsm::StateMachine monitorSM;

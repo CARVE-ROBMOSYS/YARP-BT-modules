@@ -11,29 +11,15 @@
 
 #include <BTMonitorMsg.h>
 
-bool BTMonitorMsg::read_source(yarp::os::idl::WireReader& reader) {
-  if (!reader.readString(source)) {
+bool BTMonitorMsg::read_skill(yarp::os::idl::WireReader& reader) {
+  if (!reader.readString(skill)) {
     reader.fail();
     return false;
   }
   return true;
 }
-bool BTMonitorMsg::nested_read_source(yarp::os::idl::WireReader& reader) {
-  if (!reader.readString(source)) {
-    reader.fail();
-    return false;
-  }
-  return true;
-}
-bool BTMonitorMsg::read_target(yarp::os::idl::WireReader& reader) {
-  if (!reader.readString(target)) {
-    reader.fail();
-    return false;
-  }
-  return true;
-}
-bool BTMonitorMsg::nested_read_target(yarp::os::idl::WireReader& reader) {
-  if (!reader.readString(target)) {
+bool BTMonitorMsg::nested_read_skill(yarp::os::idl::WireReader& reader) {
+  if (!reader.readString(skill)) {
     reader.fail();
     return false;
   }
@@ -54,32 +40,23 @@ bool BTMonitorMsg::nested_read_event(yarp::os::idl::WireReader& reader) {
   return true;
 }
 bool BTMonitorMsg::read(yarp::os::idl::WireReader& reader) {
-  if (!read_source(reader)) return false;
-  if (!read_target(reader)) return false;
+  if (!read_skill(reader)) return false;
   if (!read_event(reader)) return false;
   return !reader.isError();
 }
 
 bool BTMonitorMsg::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
-  if (!reader.readListHeader(3)) return false;
+  if (!reader.readListHeader(2)) return false;
   return read(reader);
 }
 
-bool BTMonitorMsg::write_source(const yarp::os::idl::WireWriter& writer) const {
-  if (!writer.writeString(source)) return false;
+bool BTMonitorMsg::write_skill(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeString(skill)) return false;
   return true;
 }
-bool BTMonitorMsg::nested_write_source(const yarp::os::idl::WireWriter& writer) const {
-  if (!writer.writeString(source)) return false;
-  return true;
-}
-bool BTMonitorMsg::write_target(const yarp::os::idl::WireWriter& writer) const {
-  if (!writer.writeString(target)) return false;
-  return true;
-}
-bool BTMonitorMsg::nested_write_target(const yarp::os::idl::WireWriter& writer) const {
-  if (!writer.writeString(target)) return false;
+bool BTMonitorMsg::nested_write_skill(const yarp::os::idl::WireWriter& writer) const {
+  if (!writer.writeString(skill)) return false;
   return true;
 }
 bool BTMonitorMsg::write_event(const yarp::os::idl::WireWriter& writer) const {
@@ -91,15 +68,14 @@ bool BTMonitorMsg::nested_write_event(const yarp::os::idl::WireWriter& writer) c
   return true;
 }
 bool BTMonitorMsg::write(const yarp::os::idl::WireWriter& writer) const {
-  if (!write_source(writer)) return false;
-  if (!write_target(writer)) return false;
+  if (!write_skill(writer)) return false;
   if (!write_event(writer)) return false;
   return !writer.isError();
 }
 
 bool BTMonitorMsg::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
-  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeListHeader(2)) return false;
   return write(writer);
 }
 bool BTMonitorMsg::Editor::write(yarp::os::ConnectionWriter& connection) const {
@@ -107,17 +83,11 @@ bool BTMonitorMsg::Editor::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(dirty_count+1)) return false;
   if (!writer.writeString("patch")) return false;
-  if (is_dirty_source) {
+  if (is_dirty_skill) {
     if (!writer.writeListHeader(3)) return false;
     if (!writer.writeString("set")) return false;
-    if (!writer.writeString("source")) return false;
-    if (!obj->nested_write_source(writer)) return false;
-  }
-  if (is_dirty_target) {
-    if (!writer.writeListHeader(3)) return false;
-    if (!writer.writeString("set")) return false;
-    if (!writer.writeString("target")) return false;
-    if (!obj->nested_write_target(writer)) return false;
+    if (!writer.writeString("skill")) return false;
+    if (!obj->nested_write_skill(writer)) return false;
   }
   if (is_dirty_event) {
     if (!writer.writeListHeader(3)) return false;
@@ -150,23 +120,18 @@ bool BTMonitorMsg::Editor::read(yarp::os::ConnectionReader& connection) {
     if (reader.getLength()>0) {
       std::string field;
       if (!reader.readString(field)) return false;
-      if (field=="source") {
+      if (field=="skill") {
         if (!writer.writeListHeader(1)) return false;
-        if (!writer.writeString("std::string source")) return false;
-      }
-      if (field=="target") {
-        if (!writer.writeListHeader(1)) return false;
-        if (!writer.writeString("std::string target")) return false;
+        if (!writer.writeString("std::string skill")) return false;
       }
       if (field=="event") {
         if (!writer.writeListHeader(1)) return false;
         if (!writer.writeString("std::string event")) return false;
       }
     }
-    if (!writer.writeListHeader(4)) return false;
+    if (!writer.writeListHeader(3)) return false;
     writer.writeString("*** Available fields:");
-    writer.writeString("source");
-    writer.writeString("target");
+    writer.writeString("skill");
     writer.writeString("event");
     return true;
   }
@@ -189,14 +154,10 @@ bool BTMonitorMsg::Editor::read(yarp::os::ConnectionReader& connection) {
     }
     if (!reader.readString(key)) return false;
     // inefficient code follows, bug paulfitz to improve it
-    if (key == "source") {
-      will_set_source();
-      if (!obj->nested_read_source(reader)) return false;
-      did_set_source();
-    } else if (key == "target") {
-      will_set_target();
-      if (!obj->nested_read_target(reader)) return false;
-      did_set_target();
+    if (key == "skill") {
+      will_set_skill();
+      if (!obj->nested_read_skill(reader)) return false;
+      did_set_skill();
     } else if (key == "event") {
       will_set_event();
       if (!obj->nested_read_event(reader)) return false;

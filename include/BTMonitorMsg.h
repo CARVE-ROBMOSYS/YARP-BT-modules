@@ -21,29 +21,26 @@ class BTMonitorMsg;
 class BTMonitorMsg : public yarp::os::idl::WirePortable {
 public:
   // Fields
-  std::string source;
-  std::string target;
+  std::string skill;
   std::string event;
 
   // Default constructor
-  BTMonitorMsg() : source(""), target(""), event("") {
+  BTMonitorMsg() : skill(""), event("") {
   }
 
   // Constructor with field values
-  BTMonitorMsg(const std::string& source,const std::string& target,const std::string& event) : source(source), target(target), event(event) {
+  BTMonitorMsg(const std::string& skill,const std::string& event) : skill(skill), event(event) {
   }
 
   // Copy constructor
   BTMonitorMsg(const BTMonitorMsg& __alt) : WirePortable(__alt)  {
-    this->source = __alt.source;
-    this->target = __alt.target;
+    this->skill = __alt.skill;
     this->event = __alt.event;
   }
 
   // Assignment operator
   const BTMonitorMsg& operator = (const BTMonitorMsg& __alt) {
-    this->source = __alt.source;
-    this->target = __alt.target;
+    this->skill = __alt.skill;
     this->event = __alt.event;
     return *this;
   }
@@ -55,16 +52,12 @@ public:
   bool write(yarp::os::ConnectionWriter& connection) const override;
 
 private:
-  bool write_source(const yarp::os::idl::WireWriter& writer) const;
-  bool nested_write_source(const yarp::os::idl::WireWriter& writer) const;
-  bool write_target(const yarp::os::idl::WireWriter& writer) const;
-  bool nested_write_target(const yarp::os::idl::WireWriter& writer) const;
+  bool write_skill(const yarp::os::idl::WireWriter& writer) const;
+  bool nested_write_skill(const yarp::os::idl::WireWriter& writer) const;
   bool write_event(const yarp::os::idl::WireWriter& writer) const;
   bool nested_write_event(const yarp::os::idl::WireWriter& writer) const;
-  bool read_source(yarp::os::idl::WireReader& reader);
-  bool nested_read_source(yarp::os::idl::WireReader& reader);
-  bool read_target(yarp::os::idl::WireReader& reader);
-  bool nested_read_target(yarp::os::idl::WireReader& reader);
+  bool read_skill(yarp::os::idl::WireReader& reader);
+  bool nested_read_skill(yarp::os::idl::WireReader& reader);
   bool read_event(yarp::os::idl::WireReader& reader);
   bool nested_read_event(yarp::os::idl::WireReader& reader);
 
@@ -117,19 +110,12 @@ public:
       group--;
       if (group==0&&is_dirty) communicate();
     }
-    void set_source(const std::string& source) {
-      will_set_source();
-      obj->source = source;
-      mark_dirty_source();
+    void set_skill(const std::string& skill) {
+      will_set_skill();
+      obj->skill = skill;
+      mark_dirty_skill();
       communicate();
-      did_set_source();
-    }
-    void set_target(const std::string& target) {
-      will_set_target();
-      obj->target = target;
-      mark_dirty_target();
-      communicate();
-      did_set_target();
+      did_set_skill();
     }
     void set_event(const std::string& event) {
       will_set_event();
@@ -138,20 +124,15 @@ public:
       communicate();
       did_set_event();
     }
-    const std::string& get_source() {
-      return obj->source;
-    }
-    const std::string& get_target() {
-      return obj->target;
+    const std::string& get_skill() {
+      return obj->skill;
     }
     const std::string& get_event() {
       return obj->event;
     }
-    virtual bool will_set_source() { return true; }
-    virtual bool will_set_target() { return true; }
+    virtual bool will_set_skill() { return true; }
     virtual bool will_set_event() { return true; }
-    virtual bool did_set_source() { return true; }
-    virtual bool did_set_target() { return true; }
+    virtual bool did_set_skill() { return true; }
     virtual bool did_set_event() { return true; }
     void clean() {
       dirty_flags(false);
@@ -175,16 +156,10 @@ public:
     void mark_dirty() {
       is_dirty = true;
     }
-    void mark_dirty_source() {
-      if (is_dirty_source) return;
+    void mark_dirty_skill() {
+      if (is_dirty_skill) return;
       dirty_count++;
-      is_dirty_source = true;
-      mark_dirty();
-    }
-    void mark_dirty_target() {
-      if (is_dirty_target) return;
-      dirty_count++;
-      is_dirty_target = true;
+      is_dirty_skill = true;
       mark_dirty();
     }
     void mark_dirty_event() {
@@ -195,15 +170,13 @@ public:
     }
     void dirty_flags(bool flag) {
       is_dirty = flag;
-      is_dirty_source = flag;
-      is_dirty_target = flag;
+      is_dirty_skill = flag;
       is_dirty_event = flag;
-      dirty_count = flag ? 3 : 0;
+      dirty_count = flag ? 2 : 0;
     }
     bool is_dirty;
     int dirty_count;
-    bool is_dirty_source;
-    bool is_dirty_target;
+    bool is_dirty_skill;
     bool is_dirty_event;
   };
 };

@@ -62,19 +62,6 @@ public:
             }
         }
 
-        if(action_module_port.getOutputCount()<1)
-        {
-            // send message to monitor: we are doing stuff
-            yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
-            BTMonitorMsg &msg = monitor.head;
-            msg = monitor.head;
-            msg.source    = getName();
-            msg.target    = "env";
-            msg.event     = "e_req";
-            monitor.body.addString(params);
-            toMonitor_port.write(monitor);
-        }
-
         //connects to the blackboard to retrieve the glass top position in ref frame
 
         if(blackboard_port.getOutputCount()<1)
@@ -96,6 +83,14 @@ public:
             yError() << "invalid answer from blackboard module: " << reply.toString();
             this->set_status(BT_FAILURE);
             return BT_FAILURE;
+        }
+        else    // if we got a response from blackboard we can say e_req was sent
+        {
+            // send message to monitor: we are doing stuff
+            BTMonitorMsg msg;
+            msg.skill     = getName();
+            msg.event     = "e_req";
+            toMonitor_port.write(msg);
         }
 
         Bottle *vector = reply.get(0).asList();
@@ -241,8 +236,7 @@ public:
         yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
         BTMonitorMsg &msg = monitor.head;
         msg = monitor.head;
-        msg.source    = "env";
-        msg.target    = getName();
+        msg.skill     = getName();
         msg.event     = "e_from_env";
         monitor.body.addString(params);
         toMonitor_port.write(monitor);

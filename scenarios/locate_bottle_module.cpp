@@ -381,14 +381,10 @@ class LocateBottle : public RFModule, public TickServer
             (find_superquadric_port.getOutputCount() > 0) )
             {
                 // send message to monitor: we are doing stuff
-                yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
-                BTMonitorMsg &msg = monitor.head;
-                msg = monitor.head;
-                msg.source    = getName();
-                msg.target    = "env";
+                BTMonitorMsg msg;
+                msg.skill     = getName();
                 msg.event     = "e_req";
-                monitor.body.addString(objectName);
-                toMonitor_port.write(monitor);
+                toMonitor_port.write(msg);
             }
 
         Vector position3D;
@@ -475,14 +471,10 @@ class LocateBottle : public RFModule, public TickServer
         }
 
         // send message to monitor: we are done with it
-        yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
-        BTMonitorMsg &msg = monitor.head;
-        msg = monitor.head;
-        msg.source    = "env";
-        msg.target    = getName();
+        BTMonitorMsg msg;
+        msg.skill     = getName();
         msg.event     = "e_from_env";
-        monitor.body.addString(objectName);
-        toMonitor_port.write(monitor);
+        toMonitor_port.write(msg);
 
         this->set_status(BT_SUCCESS);
         return BT_SUCCESS;

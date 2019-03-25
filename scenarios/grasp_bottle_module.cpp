@@ -52,8 +52,7 @@ public:
         yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
         BTMonitorMsg &msg = monitor.head;
         msg = monitor.head;
-        msg.source    = getName();
-        msg.target    = "iol";
+        msg.skill     = getName();
         msg.event     = "e_req";
         monitor.body.addString(objectName);
         toMonitor_port.write(monitor);
@@ -186,8 +185,7 @@ public:
         yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
         BTMonitorMsg &msg = monitor.head;
         msg = monitor.head;
-        msg.source    = "env";
-        msg.target    = getName();
+        msg.skill     = getName();
         msg.event     = "e_from_env";
         monitor.body.addString(objectName);
         toMonitor_port.write(monitor);

@@ -97,7 +97,7 @@ bool Monitor::read(ConnectionReader& connection)
      monitorSM.sendEvent(b.toString());
 #else
     // Process events sent using the proper thrift message
-     monitorMsg.body.clear();
+     BTMonitorMsg monitorMsg;
      if(!monitorMsg.read(connection))
      {
          yError() << "Error reading the message";
@@ -106,9 +106,9 @@ bool Monitor::read(ConnectionReader& connection)
 
      // process data in message
      yInfo() << "Current state  : " << monitorSM.getCurrentState();
-     yInfo() << "message event : " << monitorMsg.head.event;
+     yInfo() << "message event : " << monitorMsg.event;
 
-     monitorSM.sendEvent(monitorMsg.head.event);
+     monitorSM.sendEvent(monitorMsg.event);
 #endif
      // run means 'do all steps you have to do'
      monitorSM.run();
