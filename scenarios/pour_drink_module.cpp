@@ -38,6 +38,7 @@ private:
 
     RpcClient action_module_port; // default name /PourDrink/action/rpc:o, should be connected to /action-gateway/cmd:io
     RpcClient blackboard_port; // default name /PourDrink/blackboard/rpc:o,  should be connected to /blackboard/rpc:i
+    RpcClient reaching_calibration_port; // default name /PourDrink/reachingCalibration/rpc:o,  should be connected to /iolReachingCalibration/rpc
     Port toMonitor_port;
 
 public:
@@ -128,6 +129,41 @@ public:
             return BT_HALTED;
         }
 
+        //connects to the reaching calibration module to fix the position
+
+        Vector targetTopPositionFixed = targetTopPosition;
+
+        if(reaching_calibration_port.getOutputCount()>0)
+        {
+            cmd.clear();
+            cmd.addString("get_location_nolook");
+            cmd.addString("iol-right");
+            cmd.addDouble(targetTopPosition[0]);
+            cmd.addDouble(targetTopPosition[1]);
+            cmd.addDouble(targetTopPosition[2]);
+            cmd.addInt(0);
+
+            reply.clear();
+            reaching_calibration_port.write(cmd, reply);
+
+            if (reply.size() < 4)
+            {
+                yError() << "invalid answer from reaching calibration module: " << reply.toString();
+                this->set_status(BT_FAILURE);
+                return BT_FAILURE;
+            }
+            else if (reply.get(0).asVocab() == Vocab::encode("ok"))
+            {
+                targetTopPositionFixed[0] = reply.get(1).asDouble();
+                targetTopPositionFixed[1] = reply.get(2).asDouble();
+                targetTopPositionFixed[2] = reply.get(3).asDouble();
+            }
+        }
+        else
+        {
+            yWarning() << "no connection to reaching calibration module";
+        }
+
         //connects to the blackboard to retrieve the bottle neck position in the grasper frame
 
         cmd.clear();
@@ -177,7 +213,7 @@ public:
         for (int i=0 ; i<3 ; i++) sourceList.addDouble(bottleNeckOffset[i]);
         Bottle &destinationList = cmd.addList();
         destinationList.addString("destination");
-        for (int i=0 ; i<3 ; i++) destinationList.addDouble(targetTopPosition[i]);
+        for (int i=0 ; i<3 ; i++) destinationList.addDouble(targetTopPositionFixed[i]);
 
         reply.clear();
         action_module_port.write(cmd, reply);
@@ -267,6 +303,13 @@ public:
            return false;
         }
 
+        std::string reaching_calibration_port_name= "/"+this->getName()+"/reachingCalibration/rpc:o";
+        if (!reaching_calibration_port.open(reaching_calibration_port_name))
+        {
+           yError() << this->getName() << ": Unable to open port " << reaching_calibration_port_name;
+           return false;
+        }
+
         return true;
     }
 
@@ -293,6 +336,7 @@ public:
     {
         action_module_port.interrupt();
         blackboard_port.interrupt();
+        reaching_calibration_port.interrupt();
 
         return true;
     }
@@ -302,6 +346,7 @@ public:
     {
         action_module_port.close();
         blackboard_port.close();
+        reaching_calibration_port.close();
 
         return true;
     }
