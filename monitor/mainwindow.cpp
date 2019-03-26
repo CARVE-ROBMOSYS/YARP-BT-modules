@@ -16,6 +16,7 @@
 #include <QDebug>
 #include <QTimer>
 #include <QPainter>
+#include <QScrollBar>
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -74,8 +75,7 @@ void MainWindow::setupWindow(std::vector<std::string> name_list, MonitorReader* 
 
     // sets the width of the table
     ui->tableWidget->setFixedWidth(minimum_column_0_width + minimum_column_1_width + 19 );
-
-
+    ui->tableWidget->setFixedHeight((name_list.size() + 1)*ui->tableWidget->rowHeight(1));
     // Sets a timer that calls periodiacally the function update()
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
