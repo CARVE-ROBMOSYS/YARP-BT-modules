@@ -186,7 +186,7 @@ public:
         set("RobotAtRoom", Value("False"));
         set("BottleFound", Value("False"));
         set("Room_navParams", Value("0.35 True"));
-        set("Room", Value("sanquirico 10.0 2.02 0.0"));
+        set("Room", Value("sanquirico 9.2 1.9 71.0"));
 
         set("RobotAtFindBottle", Value("False"));
         set("FindBottle_navParams", Value("0.35 True"));
