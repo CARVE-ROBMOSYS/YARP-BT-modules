@@ -78,6 +78,7 @@ add_executable(server_example examples/server_example.cpp)
 target_link_libraries(server_example ${PROJECT_NAME})
 
 add_subdirectory(scenarios)
+add_subdirectory(monitor)
 
 
 ######################################################
