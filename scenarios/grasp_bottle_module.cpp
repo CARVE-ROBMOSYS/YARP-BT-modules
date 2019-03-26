@@ -42,7 +42,7 @@ private:
     Port toMonitor_port;
 
 public:
-    ReturnStatus execute_tick(const std::string& objectName = "") override
+    ReturnStatus execute_tick(const std::string& params = "") override
     {
         // do stuff
         this->set_status(BT_RUNNING);
@@ -54,13 +54,41 @@ public:
         msg = monitor.head;
         msg.skill     = getName();
         msg.event     = "e_req";
-        monitor.body.addString(objectName);
         toMonitor_port.write(monitor);
         }
 
-        std::string object;
-        if(objectName == "") object = "Bottle";
-        else object = objectName;
+        Bottle paramsList;
+        paramsList.fromString(params);
+
+        std::string objectName = "Bottle";
+
+        if(paramsList.size() > 0)
+        {
+            std::string object = paramsList.get(0).asString();
+            if(object != "")
+            {
+                objectName = object;
+            }
+            else
+            {
+                yError()<<"execute_tick: invalid first parameter. Should be a string (object name).";
+            }
+        }
+
+        std::string hand = "select";
+
+        if(paramsList.size() > 1)
+        {
+            std::string s = paramsList.get(1).asString();
+            if( (s == "right") || (s == "left") )
+            {
+                hand = s;
+            }
+            else
+            {
+                yError()<<"execute_tick: invalid second parameter. Should be a string (\"right\" or \"left\").";
+            }
+        }
 
         //connects to the blackboard to retrieve the bottle position
         if(blackboard_port.getOutputCount()<1)
@@ -94,12 +122,12 @@ public:
             return BT_FAILURE;
         }
 
-        yInfo() << "Start grasping process of" << object;
+        yInfo() << "Start grasping process of" << objectName;
 
         Bottle cmd;
         cmd.addString("grasp");
-        cmd.addString(object);
-        cmd.addString("right");
+        cmd.addString(objectName);
+        cmd.addString(hand);
 
 //        std::future<Bottle> future = std::async(std::launch::async, [this, cmd]{
 //                Bottle replyLocal;
@@ -159,7 +187,7 @@ public:
 
         cmd.clear();
         cmd.addString("set");
-        cmd.addString(object+"Grasped");
+        cmd.addString(objectName+"Grasped");
         cmd.addString("True");
 
         blackboard_port.write(cmd, reply);
@@ -178,7 +206,7 @@ public:
             return BT_FAILURE;
         }
 
-        yInfo() << object+"Grasped written to blackboard";
+        yInfo() << objectName+"Grasped written to blackboard";
 
         {
         // send message to monitor: we are done with it
@@ -187,7 +215,6 @@ public:
         msg = monitor.head;
         msg.skill     = getName();
         msg.event     = "e_from_env";
-        monitor.body.addString(objectName);
         toMonitor_port.write(monitor);
         }
 
