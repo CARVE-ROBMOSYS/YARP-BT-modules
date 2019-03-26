@@ -74,8 +74,8 @@ void MainWindow::setupWindow(std::vector<std::string> name_list, MonitorReader* 
     ui->tableWidget->setColumnWidth(1, minimum_column_1_width);
 
     // sets the width of the table
-    ui->tableWidget->setFixedWidth(minimum_column_0_width + minimum_column_1_width + 19 );
-    ui->tableWidget->setFixedHeight((name_list.size() + 1)*ui->tableWidget->rowHeight(1));
+    ui->tableWidget->setFixedWidth(minimum_column_0_width + minimum_column_1_width + 20 );
+    ui->tableWidget->setFixedHeight((name_list.size() + 1)*ui->tableWidget->rowHeight(1) + 20);
     // Sets a timer that calls periodiacally the function update()
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
