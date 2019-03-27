@@ -203,11 +203,11 @@ public:
         set("InvPose_navParams", Value("0.1 False"));
         set("RobotAtInvPose", Value("False"));
 
-        set("homeArms",                 Value("joint ( "
+        set("KeepArmsForGrasp",         Value("joint ( "
                                               "(left_arm  45 60 10 80 18) "
                                               "(right_arm 45 60 10 80 18) "
                                               "(torso 0.01) "
-                                              ") dummy_blackboard_condition"));
+                                              ") KeepArmsForGrasp"));
 
         // Values for simulation may be different wrt the real world, so let's use
         // a dedicated set of parameters with <Sim> suffix
