@@ -9,14 +9,14 @@ using namespace yarp::os;
 
 MonitorCallback::MonitorCallback(rfsm::StateMachine *sm) :
             sm(sm),
-            timer(make_unique<Timer>(0.0, &MonitorCallback::callback, this, false))
+            timer(make_unique<Timer>(3.0, &MonitorCallback::callback, this, true))
 {
 
 }
 
 MonitorCallback::MonitorCallback(rfsm::StateMachine *sm, TimerSettings& settings) :
             sm(sm),
-            timer(make_unique<yarp::os::Timer>(settings, &MonitorCallback::callback, this, false))
+            timer(make_unique<yarp::os::Timer>(settings, &MonitorCallback::callback, this, true))
 {
 
 }
@@ -60,7 +60,7 @@ double Monitor::getPeriod()
 bool Monitor::updateModule()
 {
     // Nothing to do here, since everything runs on callback
-    yInfo() << "Monitor running happily";
+    yDebug() << "Monitor running happily";
     return true;
 }
 
@@ -69,7 +69,7 @@ bool Monitor::respond(const Bottle &command, Bottle &reply)
 {
     if (command.get(0).asString() == "state")
     {
-        reply.addString(monitorSM.getCurrentState());
+//        reply.addString(monitorSM.getCurrentState());
         return true;
     }
     reply.addString("command not recognized");
@@ -80,22 +80,6 @@ bool Monitor::respond(const Bottle &command, Bottle &reply)
 // Callback from 'event' port
 bool Monitor::read(ConnectionReader& connection)
 {
-#if 0
-    // Process events sent as a simple string, for debug purpose only
-     Bottle b;
-
-     if(!b.read(connection))
-     {
-         yError() << "Error reading the message";
-         return false;
-     }
-
-     // process data in message
-     yInfo() << "Current state  : " << monitorSM.getCurrentState();
-     yInfo() << "message event : " << b.toString();
-
-     monitorSM.sendEvent(b.toString());
-#else
     // Process events sent using the proper thrift message
      BTMonitorMsg monitorMsg;
      if(!monitorMsg.read(connection))
@@ -105,14 +89,36 @@ bool Monitor::read(ConnectionReader& connection)
      }
 
      // process data in message
-     yInfo() << "Current state  : " << monitorSM.getCurrentState();
+//     yInfo() << "Current state : " << monitorSM.getCurrentState();
      yInfo() << "message event : " << monitorMsg.event;
+     yInfo() << "from skill    : " << monitorMsg.skill;
 
-     monitorSM.sendEvent(monitorMsg.event);
-#endif
+     if(!isEnvironment)
+     {
+         if(monitorMsg.skill == getName())
+            monitorSM.sendEvent(monitorMsg.event);
+         else
+             yDebug() << "Received a monitor message from a different skill ... ignoring it";
+     }
+     else
+     {
+         // in case of monitor for environment, concatenate the event and skill name
+         string eventName;
+         if(monitorMsg.event == "e_from_env")
+         {
+             eventName = "e_success_" + monitorMsg.skill;
+         }
+         else
+         {
+             eventName = monitorMsg.event + monitorMsg.skill;
+         }
+
+         monitorSM.sendEvent(eventName);
+     }
      // run means 'do all steps you have to do'
      monitorSM.run();
      yInfo() << "New state  : " << monitorSM.getCurrentState();
+
      return true;
 }
 
@@ -129,14 +135,23 @@ bool Monitor::configure(yarp::os::ResourceFinder &rf)
         return false;
     }
 
-    if (rf.check("name"))
+    if (rf.check("environment"))
     {
-        setName(rf.find("name").asString().c_str());
+        isEnvironment = true;
+        setName("environment");
+        yInfo() << "Monitor for environment";
     }
     else
     {
-        yError() << " Missing keyword <name> from config file";
-        return false;
+        if (rf.check("name"))
+        {
+            setName(rf.find("name").asString().c_str());
+        }
+        else
+        {
+            yError() << " Missing keyword <name> from config file";
+            return false;
+        }
     }
 
     if (!event_port_.open("/monitor/"+getName()+"/event:i"))
@@ -183,6 +198,7 @@ bool Monitor::configure(yarp::os::ResourceFinder &rf)
     // a dynamic vector reallocations causes problems because references
     // became invalid
     size_t callbackNum = 0;
+
     for(auto transition : smDescription.transitions)
     {
         for(auto event : transition.events)
@@ -197,11 +213,10 @@ bool Monitor::configure(yarp::os::ResourceFinder &rf)
 
     yDebug() << "callbackNum " << callbackNum;
     callbacks.reserve(callbackNum);
-
     // ACtually fills the callback vector
-    for(auto transition : smDescription.transitions)
+    for(auto &transition : smDescription.transitions)
     {
-        for(auto event : transition.events)
+        for(auto &event : transition.events)
         {
             for(int i=0; i< eventList.size(); i++)
             {
@@ -225,12 +240,7 @@ bool Monitor::configure(yarp::os::ResourceFinder &rf)
         }
     }
 
-
-    for(auto s : monitorSM.getEventsList() )
-    {
-        yInfo() << s;
-    }
-
+    yInfo() << "Monitor for " << getName() << " ready";
     monitorSM.run();
     return true;
 }

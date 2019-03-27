@@ -5,6 +5,8 @@
 
 #include <yarp/os/Port.h>
 #include <yarp/os/Timer.h>
+#include <yarp/os/Timer.h>
+
 #include <yarp/os/Network.h>
 #include <yarp/os/RFModule.h>
 #include <yarp/os/PortablePair.h>
@@ -62,6 +64,8 @@ private:
 
     // callback for event port
     bool read(yarp::os::ConnectionReader& connection);
+
+    bool isEnvironment {false};
 
     yarp::os::Port event_port_; // a port to handle event messages
     yarp::os::Port state_port_; // a port to rpc requests
