@@ -31,10 +31,10 @@ using namespace yarp::sig;
 class LocateBottle : public RFModule, public TickServer
 {
     RpcClient object_properties_collector_port; // should be connected to /memory/rpc
-    RpcClient gaze_exploration_port; // should be connected to /iolStateMachineHandler/human:rpc
     RpcClient point_cloud_read_port; // should be connected to /pointCloudRead/rpc
     RpcClient find_superquadric_port; // should be connected to /find-superquadric/points:rpc
     RpcClient blackboard_port; // should be connected to /blackboard/rpc:i
+    RpcClient gaze_controller_port; // should be connected to /cer_gaze-controller/rpc
     Port toMonitor_port;
 
     /****************************************************************/
@@ -155,6 +155,12 @@ class LocateBottle : public RFModule, public TickServer
         if(!pointCloud.fromBottle(*(reply.get(0).asList())))
         {
             yDebug() << "getObjectProperties: invalid reply from point-cloud-read:" << reply.toString();
+            return false;
+        }
+
+        if(pointCloud.size() < 1)
+        {
+            yDebug() << "getObjectProperties: invalid reply from point-cloud-read: empty point cloud";
             return false;
         }
 
@@ -307,37 +313,6 @@ class LocateBottle : public RFModule, public TickServer
     }
 
     /****************************************************************/
-    bool setGazeExploration(bool status)
-    {
-        if(gaze_exploration_port.getOutputCount()<1)
-        {
-            yError() << "setGazeExploration: no connection to gaze exploration module";
-            return false;
-        }
-
-        Bottle cmd;
-        cmd.addString("attention");
-        cmd.addString(status?"start":"stop");
-
-        Bottle reply;
-        gaze_exploration_port.write(cmd, reply);
-
-        if(reply.size() != 1)
-        {
-            yError() << "setGazeExploration: invalid answer from gaze exploration module: " << reply.toString();
-            return false;
-        }
-
-        if(reply.get(0).asVocab() != Vocab::encode("ack"))
-        {
-            yError() << "setGazeExploration: invalid answer from gaze exploration module: " << reply.get(0).toString();
-            return false;
-        }
-
-        return true;
-    }
-
-    /****************************************************************/
     ReturnStatus execute_tick(const std::string& params = "")
     {
         this->set_status(BT_RUNNING);
@@ -346,7 +321,7 @@ class LocateBottle : public RFModule, public TickServer
         paramsList.fromString(params);
 
         std::string objectName("Bottle");
-        double timeOut = 10;
+        double timeOut = 3;
 
         if(paramsList.size() > 0)
         {
@@ -376,9 +351,9 @@ class LocateBottle : public RFModule, public TickServer
 
         // check required connections are up and running
         if( (object_properties_collector_port.getOutputCount() > 0) &&
-            (gaze_exploration_port.getOutputCount() > 0) &&
             (point_cloud_read_port.getOutputCount() > 0) &&
-            (find_superquadric_port.getOutputCount() > 0) )
+            (find_superquadric_port.getOutputCount() > 0) &&
+            (gaze_controller_port.getOutputCount() > 0))
             {
                 // send message to monitor: we are doing stuff
                 BTMonitorMsg msg;
@@ -388,20 +363,21 @@ class LocateBottle : public RFModule, public TickServer
             }
 
         Vector position3D;
-        bool objectLocated = false;
+        Vector objectShape;
 
-        // if object not already found run gaze exploration until the object is found
-        if(!this->getObjectPosition(objectName, position3D))
+        bool objectLocated = this->getObjectPosition(objectName, position3D);
+        if(objectLocated) objectLocated = this->getObjectShape(objectName, objectShape);
+
+        // if object not already found explore the space to find it
+        std::vector<std::pair<double, double>> headTrials {{0.0, -35.0}, {15.0, -35.0}, {30.0, -35.0}, {-15.0, -35.0}, {-30.0, -35.0} };
+        for(int trial=0; (!objectLocated && (trial<headTrials.size())) ; trial++)
         {
-            if(!this->writeObjectDetectionStatusToBlackboard(objectName, true))
+            if(!this->writeObjectDetectionStatusToBlackboard(objectName, false))
             {
                 yError()<<"execute_tick: writeObjectPositionToBlackboard failed";
                 this->set_status(BT_FAILURE);
                 return BT_FAILURE;
             }
-
-            // activate gaze exploration
-            this->setGazeExploration(true);
 
             // wait until object is found or timeout
 
@@ -415,30 +391,65 @@ class LocateBottle : public RFModule, public TickServer
                 }
 
                 objectLocated = this->getObjectPosition(objectName, position3D);
+                if(objectLocated) objectLocated = this->getObjectShape(objectName, objectShape);
 
                 yarp::os::Time::delay(0.1);
             }
 
-            this->setGazeExploration(false);
-
             if(!objectLocated)
             {
-                yError()<<"execute_tick: object search timed out";
-                this->set_status(BT_FAILURE);
-                return BT_FAILURE;
+                if(gaze_controller_port.getOutputCount()<1)
+                {
+                    yError() << "execute_tick: no connection to gaze controller module";
+                    this->set_status(BT_FAILURE);
+                    return BT_FAILURE;
+                }
+
+                yInfo() << "trial " << trial << " failed. Retrying with position " << headTrials[trial].first << " " << headTrials[trial].second;
+
+                Bottle cmd, reply;
+
+                Vector p(2);
+                p[0]=headTrials[trial].first;
+                p[1]=headTrials[trial].second;
+                Bottle target;
+                target.addList().read(p);
+
+                Property prop;
+                prop.put("target-type", "angular");
+                prop.put("target-location", target.get(0));
+                cmd.addVocab(Vocab::encode("look"));
+                cmd.addList().read(prop);
+
+                bool ret;
+                ret = gaze_controller_port.write(cmd,reply);
+
+                yDebug() << "cmd " << cmd.toString() << " reply " << reply.toString() << " ret " << ret;
             }
         }
 
-        if(this->getHalted())
+        if(!objectLocated)
         {
-            this->set_status(BT_HALTED);
-            return BT_HALTED;
-        }
+            yError() << "execute_tick: object search timed out";
+            Bottle cmd, reply;
+            cmd.addString("set");
+            cmd.addString("InvPoseComputed");
+            cmd.addString("False");
+            blackboard_port.write(cmd, reply);
 
-        Vector objectShape;
-        if(!this->getObjectShape(objectName, objectShape))
-        {
-            yError()<<"execute_tick: getObjectShape failed";
+            cmd.clear();
+            cmd.addString("set");
+            cmd.addString("RobotAtInvPose");
+            cmd.addString("False");
+            blackboard_port.write(cmd, reply);
+
+            cmd.clear();
+            cmd.addString("set");
+            cmd.addString("BottleLocated");
+            cmd.addString("False");
+            blackboard_port.write(cmd, reply);
+
+            blackboard_port.write(cmd, reply);
             this->set_status(BT_FAILURE);
             return BT_FAILURE;
         }
@@ -494,13 +505,6 @@ class LocateBottle : public RFModule, public TickServer
            return false;
         }
 
-        std::string gazeExplorationPortName= "/"+this->getName()+"/gazeExploration/rpc:o";
-        if (!gaze_exploration_port.open(gazeExplorationPortName))
-        {
-           yError() << this->getName() << ": Unable to open port " << gazeExplorationPortName;
-           return false;
-        }
-
         std::string pointCloudReadPortName= "/"+this->getName()+"/pointCloudRead/rpc:o";
         if (!point_cloud_read_port.open(pointCloudReadPortName))
         {
@@ -520,6 +524,13 @@ class LocateBottle : public RFModule, public TickServer
         {
            yError() << this->getName() << ": Unable to open port " << blackboardPortName;
            return false;
+        }
+
+        std::string gazeControllerPortName= "/"+this->getName()+"/gaze_controller/rpc:o";
+        if (!gaze_controller_port.open(gazeControllerPortName))
+        {
+            yError() << this->getName() << ": Unable to open port " << gazeControllerPortName;
+            return false;
         }
 
         // to connect to relative monitor
@@ -549,9 +560,9 @@ class LocateBottle : public RFModule, public TickServer
     bool interruptModule() override
     {
         object_properties_collector_port.interrupt();
-        gaze_exploration_port.interrupt();
         point_cloud_read_port.interrupt();
         find_superquadric_port.interrupt();
+        gaze_controller_port.interrupt();
         blackboard_port.interrupt();
 
         return true;
@@ -561,9 +572,9 @@ class LocateBottle : public RFModule, public TickServer
     bool close() override
     {
         object_properties_collector_port.close();
-        gaze_exploration_port.close();
         point_cloud_read_port.close();
         find_superquadric_port.close();
+        gaze_controller_port.close();
         blackboard_port.close();
 
         return true;
