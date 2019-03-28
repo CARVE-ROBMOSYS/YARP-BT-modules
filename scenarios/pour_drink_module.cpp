@@ -220,7 +220,7 @@ public:
 
         if(reply.size() != 1)
         {
-            yError() << "invalid answer from grasping module: " << reply.toString();
+            yError() << "invalid answer from pouring module: " << reply.toString();
             this->set_status(BT_FAILURE);
             return BT_FAILURE;
         }
@@ -234,7 +234,31 @@ public:
 
         yInfo() << "pouring success";
 
-        //connects to the blackboard to set the PouringDone flag
+        //connects to the action module to drop the bottle
+
+        cmd.clear();
+        cmd.addVocab(Vocab::encode("drop"));
+
+        reply.clear();
+        action_module_port.write(cmd, reply);
+
+        if(reply.size() != 1)
+        {
+            yError() << "invalid answer from action module: " << reply.toString();
+            this->set_status(BT_FAILURE);
+            return BT_FAILURE;
+        }
+
+        if(reply.get(0).asVocab() != Vocab::encode("ack"))
+        {
+            yError() << "dropping failed: see output of action module for more information";
+            this->set_status(BT_FAILURE);
+            return BT_FAILURE;
+        }
+
+        yInfo() << "dropping success";
+
+        //connects to the blackboard to set the ContentPoured flag
 
         if(blackboard_port.getOutputCount()<1)
         {
@@ -245,7 +269,7 @@ public:
 
         cmd.clear();
         cmd.addString("set");
-        cmd.addString("PouringDone");
+        cmd.addString("ContentPoured");
         cmd.addString("True");
 
         reply.clear();
