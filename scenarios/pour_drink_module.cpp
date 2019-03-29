@@ -102,6 +102,8 @@ public:
             return BT_FAILURE;
         }
 
+        yInfo() << "Received target properties:" << vector->toString();
+
         Vector targetCenter(3);
         Vector targetOrientation(4);
         for(int i=0 ; i<3 ; i++) targetCenter[i] = vector->get(i).asDouble();
@@ -122,6 +124,8 @@ public:
         if(upAxis[2] < 0) upAxis = -1*upAxis;
 
         Vector targetTopPosition = targetCenter + vector->get(7+axis).asDouble() * upAxis;
+
+        yInfo() << "Pouring target computed:" << targetTopPosition.toString();
 
         if(this->getHalted())
         {
@@ -164,6 +168,14 @@ public:
             yWarning() << "no connection to reaching calibration module";
         }
 
+        yInfo() << "Pouring target fixed for kinematics:" << targetTopPositionFixed.toString();
+
+        if(this->getHalted())
+        {
+            this->set_status(BT_HALTED);
+            return BT_HALTED;
+        }
+
         //connects to the blackboard to retrieve the bottle neck position in the grasper frame
 
         cmd.clear();
@@ -191,6 +203,8 @@ public:
         Vector bottleNeckOffset(3);
         for(int i=0 ; i<3 ; i++) bottleNeckOffset[i] = vector->get(i).asDouble();
 
+        yInfo() << "Retrieved bottle neck offset:" << bottleNeckOffset.toString();
+
         if(this->getHalted())
         {
             this->set_status(BT_HALTED);
@@ -215,6 +229,8 @@ public:
         destinationList.addString("destination");
         for (int i=0 ; i<3 ; i++) destinationList.addDouble(targetTopPositionFixed[i]);
 
+        yInfo() << "Sending to action module:" << cmd.toString();
+
         reply.clear();
         action_module_port.write(cmd, reply);
 
@@ -232,7 +248,7 @@ public:
             return BT_FAILURE;
         }
 
-        yInfo() << "pouring success";
+        yInfo() << "Pouring success";
 
         //connects to the action module to drop the bottle
 
@@ -256,7 +272,7 @@ public:
             return BT_FAILURE;
         }
 
-        yInfo() << "dropping success";
+        yInfo() << "Dropping success";
 
         //connects to the blackboard to set the ContentPoured flag
 
@@ -289,7 +305,7 @@ public:
             return BT_FAILURE;
         }
 
-        yInfo() << "PouringDone set to True in the blackboard";
+        yInfo() << "ContentPoured set to True in the blackboard";
 
         {
         // send message to monitor: we are done with it
