@@ -25,7 +25,6 @@
 //behavior trees imports
 #include <include/tick_server.h>
 #include <BTMonitorMsg.h>
-#include <yarp/os/PortablePair.h>
 
 using namespace yarp::os;
 using namespace yarp::dev;
@@ -33,6 +32,7 @@ using namespace yarp::dev;
 class ComputeInvPose : public TickServer, public RFModule
 {
 private:
+    bool simulated{false};
     Bottle cmd, response;
     yarp::os::Port blackboard_port;
     Port toMonitor_port;
@@ -44,45 +44,12 @@ public:
         bool ret = false;
         yInfo() << "[ComputeInvPose] Action started";
 
-        static bool first = true;
-        static bool toggle = true;
-
-        double randAngle = 0;
-
-        double randX =  11.19;
-        /*
-        // generate random number
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        double min_x{5}, max_x{+30};
-        std::uniform_real_distribution<double> dis_theta(min_x, max_x);
-        std::uniform_real_distribution<double> dis_x(0, 0.2);
-
-        if(first)
-        {
-            yInfo() << "first";
-            randAngle = 0;
-            first     = false;
-        }
-        else
-        {
-            yInfo() << "toggle " << toggle;
-            toggle ? randAngle = dis_theta(gen) : randAngle = -dis_theta(gen);
-            toggle = !toggle;
-        }
-        // create string
-        std::ostringstream strsX, strsTheta;
-        std::string strX, strTheta;
-        strsX << randX;
-        strX= strsX.str();
-
-        strsTheta << randAngle;
-        strTheta = strsTheta.str();
-        std::string inv_pose = "sanquirico 11.18 1.90 " + strTheta;
-        */
-
         // without random
-        std::string inv_pose = "sanquirico 11.18 1.90 0.0";
+        std::string inv_pose;
+        if(simulated)
+            inv_pose = "sanquirico 10.382 1.845 -0.26";          // simulation
+        else
+            inv_pose = "sanquirico 11.18 1.90 0.0";                 // real robot
 
         // create command
         cmd.clear();
@@ -145,6 +112,9 @@ public:
     {
         this->configure_tick_server("/"+this->getName());
         blackboard_port.open("/"+this->getName() + "/blackboard/rpc:o");
+
+        if(rf.find("sim").asBool())
+            simulated = true;
 
         // to connect to relative monitor
         toMonitor_port.open("/"+this->getName()+"/monitor:o");
