@@ -24,6 +24,8 @@ MonitorReader::MonitorReader()
 
 bool MonitorReader::configure(std::vector<std::string> name_list)
 {
+
+    return true;
     // initializes yarp network
     yarp::os::Network yarp;
     if (!yarp::os::Network::checkNetwork(5.0))
@@ -46,7 +48,7 @@ bool MonitorReader::configure(std::vector<std::string> name_list)
 
         if (!is_connected)
         {
-            yError() << "[Monitor] cannot connect to " << rpc_server_port_name;
+            yError() << "[GUI] cannot connect to " << rpc_server_port_name;
             return false;
         }
 

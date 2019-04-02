@@ -11,6 +11,7 @@
 
 #include "mainwindow.h"
 #include "monitor_reader.h"
+#include "robot_interaction.h"
 #include <QApplication>
 #include <yarp/os/LogStream.h>
 #include <yarp/os/ResourceFinder.h>
@@ -25,6 +26,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     MainWindow w;
     MonitorReader* monitor = new MonitorReader();
+    RobotInteraction* interaction = new RobotInteraction();
 
 
     rf.configure(argc, argv);
@@ -46,21 +48,21 @@ int main(int argc, char *argv[])
     }
     else
     {
-        yError() << "Cannot open the file" << filename;
+        yError() << "[GUI] Cannot open the file" << filename;
         return 1;
     }
 
     // configures the monitor's reader (open the YARP ports)
-    bool is_ok = monitor->configure(names);
+    bool is_ok = monitor->configure(names) && interaction->configure();
 
     if (!is_ok)
     {
-        yError() << "Cannot open the monitor GUI";
+        yError() << "[GUI] Cannot open the GUI";
         return 1;
     }
 
     w.show();
-    w.setupWindow(names, monitor);
+    w.setupWindow(names, monitor, interaction);
 
     return a.exec();
 }

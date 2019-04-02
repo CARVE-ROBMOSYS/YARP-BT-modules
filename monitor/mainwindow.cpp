@@ -17,22 +17,24 @@
 #include <QTimer>
 #include <QPainter>
 #include <QScrollBar>
+#include <QTime>
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    is_door_open_ = true;
     ui->setupUi(this);
 
 }
 
-void MainWindow::setupWindow(std::vector<std::string> name_list, MonitorReader* monitor_prt)
-
+void MainWindow::setupWindow(std::vector<std::string> name_list, MonitorReader* monitor_prt, RobotInteraction* robot_interaction_prt)
 {
     QPainter painter;
     QFontMetrics fm = painter.fontMetrics();
 
     name_list_ = name_list;
     monitor_prt_ = monitor_prt;
+    robot_interaction_prt_ = robot_interaction_prt;
 
     int minimum_column_0_width = 150, minimum_column_1_width = 150;
     ui->tableWidget->setColumnCount(2);
@@ -86,12 +88,29 @@ void MainWindow::setupWindow(std::vector<std::string> name_list, MonitorReader* 
 
 void MainWindow::update()
 {
+std::string new_message;
+   bool has_message = robot_interaction_prt_->readMessage(new_message);
+
+   if (has_message)
+   {
+       ui->textBrowser->append(QTime::currentTime().toString() +" The robot said: " +new_message.c_str());
+   }
+
+    return;
     // requests the updated list of states to the monitor and updates the table accordingly
     std::vector<std::string> updated_list = monitor_prt_->updateList();
 
     for (int i = 0; i< name_list_.size(); i++)
     {
         QString q_string_state_text = updated_list.at(i).c_str();
+
+        if (q_string_state_text.isEmpty())
+        {
+            // No state read. Probably the monitor crashed
+            ui->tableWidget->item(i, 1)->setBackground(Qt::gray);
+            continue;
+        }
+
         QTableWidgetItem *state_text =  new QTableWidgetItem(q_string_state_text);
         state_text->setFlags(state_text->flags() & ~Qt::ItemIsEditable);
         state_text->setTextAlignment(Qt::AlignCenter);
@@ -111,4 +130,37 @@ void MainWindow::update()
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::on_pushButton_resetbb_released()
+{
+    robot_interaction_prt_->resetBlackboard();
+}
+
+void MainWindow::on_pushButton_this_is_released()
+{
+    robot_interaction_prt_->sendMessage("this is the Room");
+}
+
+void MainWindow::on_pushButton_help_released()
+{
+    robot_interaction_prt_->sendMessage("help given");
+
+}
+
+
+void MainWindow::on_pushButton_toggleDoor_released()
+{
+    if(is_door_open_)
+    {
+        robot_interaction_prt_->closeDoor();
+        ui->pushButton_toggleDoor->setText("Open Door");
+        is_door_open_=false;
+    }
+    else
+    {
+        robot_interaction_prt_->openDoor();
+        ui->pushButton_toggleDoor->setText("Close Door");
+        is_door_open_=true;
+    }
 }

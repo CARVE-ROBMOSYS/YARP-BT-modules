@@ -20,6 +20,7 @@ set(UI_SOURCES
 
 set(MONTOR_SRC mainwindow.cpp
                monitor_reader.cpp
+               robot_interaction.cpp
                mainwindow.ui
                mainwindow.h
     )
