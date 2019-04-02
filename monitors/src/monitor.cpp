@@ -67,7 +67,7 @@ double Monitor::getPeriod()
 bool Monitor::updateModule()
 {
     // Nothing to do here, since everything runs on callback
-    yInfo() << "Monitor running happily";
+    yInfo() << "Monitor " << getName() << " running happily";
     return true;
 }
 
@@ -224,11 +224,13 @@ bool Monitor::configure(yarp::os::ResourceFinder &rf)
             for(int i=0; i< eventList.size(); i++)
             {
                 string timeoutEvent = eventList.get(i).asList()->get(0).asString();
-//                yDebug() << " looking for event " << timeoutEvent;
+                double timeoutValue = eventList.get(i).asList()->get(1).asDouble();
+
+                yDebug() << " looking for event " << timeoutEvent << " value " << timeoutValue;
                 if(timeoutEvent == event)
                 {
-                    callbacks.emplace_back(make_unique<MonitorCallback>(&monitorSM));
-                    callbacks.rbegin()->operator ->() ->setTimer({40.0, (size_t)1, 0.0});
+                    TimerSettings set{timeoutValue, (size_t)1, 0.0};
+                    callbacks.emplace_back(make_unique<MonitorCallback>(&monitorSM, set));
 
                     callbacks.rbegin()->operator ->()->state = transition.source;
                     monitorSM.setStateCallback(transition.source, *(*callbacks.rbegin()));

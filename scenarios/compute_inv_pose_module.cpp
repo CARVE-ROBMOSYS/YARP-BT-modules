@@ -46,6 +46,7 @@ public:
 
         // without random
         std::string inv_pose;
+
         if(simulated)
             inv_pose = "sanquirico 10.25 1.845 -0.26";          // simulation
         else

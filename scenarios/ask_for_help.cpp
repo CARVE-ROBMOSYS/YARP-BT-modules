@@ -15,6 +15,7 @@
 #include <chrono>
 
 //YARP imports
+#include <yarp/os/Bottle.h>
 #include <yarp/os/Network.h>    // for yarp::os::Network
 #include <yarp/os/LogStream.h>  // for yError()
 #include <BTMonitorMsg.h>
@@ -29,13 +30,18 @@ class AskForHelp : public TickServer, public RFModule
 
 private:
     std::map<std::string, Value> bb;
-    yarp::os::Port askHelp_port; // a bb port to handle messages
+    yarp::os::Port receiveHelp_port; // a bb port to handle messages
     yarp::os::Port toMonitor_port;
+    yarp::os::Port askHelp_port;
 
 public:
     ReturnStatus request_tick(const std::string& params = "") override
     {
         ReturnStatus ret = BT_RUNNING;
+
+        Bottle help;
+        help.addString("Help requested");
+        askHelp_port.write(help);
 
         yDebug() << " Received tick";
         // send message to monitor: we are done with it
@@ -87,9 +93,9 @@ public:
             msg.skill    = getName();
             msg.event    = "e_from_env";
             toMonitor_port.write(msg);
-            yInfo() << "reply" << reply.toString();
         }
 
+        yInfo() << "reply" << reply.toString();
         return true;
     }
 
@@ -98,8 +104,10 @@ public:
        // optional, attach a port to the module
        // so that messages received from the port are redirected
        // to the respond method
-       askHelp_port.open("/AskForHelp/rpc:i");
-       attach(askHelp_port);
+       receiveHelp_port.open("/AskForHelp/rpc:i");
+       askHelp_port.open("/AskForHelp/text:o");
+
+       attach(receiveHelp_port);
 
        configure_tick_server("/" + getName());
        toMonitor_port.open("/" + getName() + "/monitor:o");
@@ -109,8 +117,9 @@ public:
 
     bool interruptModule()
     {
-        askHelp_port.interrupt();
+        receiveHelp_port.interrupt();
         toMonitor_port.interrupt();
+        askHelp_port.interrupt();
         return true;
     }
 
@@ -118,8 +127,9 @@ public:
     bool close()
     {
         // optional, close port explicitly
-        askHelp_port.close();
+        receiveHelp_port.close();
         toMonitor_port.close();
+        askHelp_port.close();
         return true;
     }
 };

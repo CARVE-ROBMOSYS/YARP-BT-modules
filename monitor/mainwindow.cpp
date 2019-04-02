@@ -36,7 +36,7 @@ void MainWindow::setupWindow(std::vector<std::string> name_list, MonitorReader* 
     monitor_prt_ = monitor_prt;
     robot_interaction_prt_ = robot_interaction_prt;
 
-    int minimum_column_0_width = 150, minimum_column_1_width = 150;
+    int minimum_column_0_width = 150, minimum_column_1_width = 250;
     ui->tableWidget->setColumnCount(2);
     ui->tableWidget->setRowCount(name_list.size());
 
