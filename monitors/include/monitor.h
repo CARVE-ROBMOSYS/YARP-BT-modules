@@ -45,6 +45,8 @@ public:
 
     std::string state;
 private:
+
+    double startTime, elapsed{0.0};
     rfsm::StateMachine *sm;
     std::unique_ptr<yarp::os::Timer> timer;
 };
@@ -64,7 +66,7 @@ private:
 
     // callback for event port
     bool read(yarp::os::ConnectionReader& connection);
-
+    double startTime;
     bool isEnvironment {false};
 
     yarp::os::Port event_port_; // a port to handle event messages

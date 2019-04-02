@@ -1,7 +1,9 @@
 #include <iostream>
 
 #include <monitor.h>
+#include <iomanip>
 #include <yarp/os/LogStream.h>
+#include <yarp/os/Time.h>
 
 using namespace std;
 using namespace yarp::os;
@@ -9,22 +11,24 @@ using namespace yarp::os;
 
 MonitorCallback::MonitorCallback(rfsm::StateMachine *sm) :
             sm(sm),
-            timer(make_unique<Timer>(3.0, &MonitorCallback::callback, this, true))
+            timer(make_unique<Timer>(10.0, &MonitorCallback::callback, this, true))
 {
-
+    startTime = Time::now();
 }
 
 MonitorCallback::MonitorCallback(rfsm::StateMachine *sm, TimerSettings& settings) :
             sm(sm),
             timer(make_unique<yarp::os::Timer>(settings, &MonitorCallback::callback, this, true))
 {
-
+    startTime = Time::now();
 }
 
 
 bool MonitorCallback::callback(const yarp::os::YarpTimerEvent& timeInfo)
 {
-    yError() << "Timeout!! " << sm->getCurrentState();
+    yError() << " Timeout  at time " << Time::now() - startTime << sm->getCurrentState();
+    yDebug() << " Elapsed at expiration " << Time::now() - elapsed;
+
     sm->sendEvent("e_timeout");
     sm->run();
     return true;
@@ -37,19 +41,22 @@ void MonitorCallback::setTimer(const TimerSettings &settings)
 
 void MonitorCallback::entry()
 {
+    yInfo() << " Starting timer at" << Time::now() - startTime << " from state " << sm->getCurrentState();
     timer->start();
-     yInfo() << " entry callback from state " << sm->getCurrentState();
+    elapsed = Time::now();
 }
 
 void MonitorCallback::doo()
 {
-    yInfo() << " doo callback from state " << sm->getCurrentState();
+    yInfo() << " doo callback at " << Time::now() - startTime << " from state " << sm->getCurrentState();
 }
 
 void MonitorCallback::exit()
 {
+    yInfo() << " Stopping timer at" << Time::now() - startTime << " from state " << sm->getCurrentState();
     timer->stop();
-    yInfo() << " exit callback from state " << sm->getCurrentState();
+    yDebug() << "Elapsed at stop " << Time::now() - elapsed;
+    elapsed = 0;
 }
 
 double Monitor::getPeriod()
@@ -60,7 +67,7 @@ double Monitor::getPeriod()
 bool Monitor::updateModule()
 {
     // Nothing to do here, since everything runs on callback
-    yDebug() << "Monitor running happily";
+    yInfo() << "Monitor running happily";
     return true;
 }
 
@@ -69,11 +76,10 @@ bool Monitor::respond(const Bottle &command, Bottle &reply)
 {
     if (command.get(0).asString() == "state")
     {
-//        reply.addString(monitorSM.getCurrentState());
+        reply.addString(monitorSM.getCurrentState());
         return true;
     }
     reply.addString("command not recognized");
-
     return true;
 }
 
@@ -88,42 +94,39 @@ bool Monitor::read(ConnectionReader& connection)
          return false;
      }
 
-     // process data in message
-//     yInfo() << "Current state : " << monitorSM.getCurrentState();
-     yInfo() << "message event : " << monitorMsg.event;
-     yInfo() << "from skill    : " << monitorMsg.skill;
-
      if(!isEnvironment)
      {
          if(monitorMsg.skill == getName())
             monitorSM.sendEvent(monitorMsg.event);
          else
-             yDebug() << "Received a monitor message from a different skill ... ignoring it";
+         {
+             yDebug() << "Received a monitor message from a different skill (" << monitorMsg.skill << monitorMsg.event << ") ... ignoring it";
+            return false;
+         }
      }
      else
      {
          // in case of monitor for environment, concatenate the event and skill name
-         string eventName;
-         if(monitorMsg.event == "e_from_env")
-         {
-             eventName = "e_success_" + monitorMsg.skill;
-         }
-         else
-         {
-             eventName = monitorMsg.event + monitorMsg.skill;
-         }
-
-         monitorSM.sendEvent(eventName);
+         string eventName = monitorMsg.event + "_" + monitorMsg.skill;
+         yDebug() << "Sending event " << eventName;
+         monitorSM.sendEvent(monitorMsg.event + "_" + monitorMsg.skill);
      }
+
+     // process data in message
+     yInfo() << "\n******** NEW event received ***************** " <<  (Time::now() - startTime);
+     string old = monitorSM.getCurrentState();
+     yInfo() << monitorMsg.skill << monitorMsg.event;
+
      // run means 'do all steps you have to do'
      monitorSM.run();
-     yInfo() << "New state  : " << monitorSM.getCurrentState();
+     yInfo() << "Switching state " << old << " -> " << monitorSM.getCurrentState();
 
      return true;
 }
 
 bool Monitor::configure(yarp::os::ResourceFinder &rf)
 {
+    startTime = Time::now();
     std::string filename;
     if (rf.check("filename"))
     {
@@ -131,7 +134,7 @@ bool Monitor::configure(yarp::os::ResourceFinder &rf)
     }
     else
     {
-        yError() << " Missing keyword s<filename> from config file";
+        yError() << " Missing keyword <filename> from config file";
         return false;
     }
 
@@ -225,7 +228,7 @@ bool Monitor::configure(yarp::os::ResourceFinder &rf)
                 if(timeoutEvent == event)
                 {
                     callbacks.emplace_back(make_unique<MonitorCallback>(&monitorSM));
-                    callbacks.rbegin()->operator ->() ->setTimer({10.0, (size_t)1, 0.0});
+                    callbacks.rbegin()->operator ->() ->setTimer({40.0, (size_t)1, 0.0});
 
                     callbacks.rbegin()->operator ->()->state = transition.source;
                     monitorSM.setStateCallback(transition.source, *(*callbacks.rbegin()));
