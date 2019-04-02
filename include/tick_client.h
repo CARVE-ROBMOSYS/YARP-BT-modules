@@ -36,7 +36,7 @@ public:
      * *            will be appended to 'aame' param
      * @return true if port was succesfully opened, false if error
      */
-    bool configure(std::string name,  bool monitor=false);
+    bool configure(std::string portPrefix, bool monitor=false, std::string skillName="");
 
     /**
      * @brief connect   Connect tick client to remote tick server

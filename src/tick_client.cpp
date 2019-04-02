@@ -34,11 +34,16 @@ TickClient::~TickClient()
     toMonitor->close();
 }
 
-bool TickClient::configure(std::string name, bool monitor)
+bool TickClient::configure(std::string portPrefix, bool monitor, std::string skillName)
 {
     bool ret = true;
-    module_name_ = name;
-    std::string cmd_port_name = module_name_ + "/tick:o";
+    if(skillName == "")
+    {
+        skillName = portPrefix;
+    }
+
+    module_name_ = skillName;
+    std::string cmd_port_name = portPrefix + "/tick:o";
 
     if (!cmd_port_.open(cmd_port_name.c_str())) {
         std::cout << module_name_ << ": Unable to open port " << cmd_port_name << std::endl;
@@ -49,7 +54,7 @@ bool TickClient::configure(std::string name, bool monitor)
     {
         useMonitor = true;
         toMonitor = std::make_unique<yarp::os::Port>();
-        ret = toMonitor->open(module_name_ + "/monitor:o");
+        ret = toMonitor->open(cmd_port_name + "/monitor:o");
     }
 
     this->yarp().attachAsClient(cmd_port_);
@@ -77,8 +82,7 @@ bool TickClient::propagateToMonitor(TickCommand cmdType, Direction dir, const st
 {
     if(useMonitor)
     {
-        yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
-        BTMonitorMsg &msg = monitor.head;
+        BTMonitorMsg msg;
 
         msg.skill    = module_name_;
         msg.event = "unknown";
@@ -96,8 +100,7 @@ bool TickClient::propagateToMonitor(TickCommand cmdType, Direction dir, const st
         if((cmdType == BT_HALT) && (Direction::REPLY == dir))
             msg.event = "halted_to_bt";
 
-        monitor.body.addString(params);
-        toMonitor->write(monitor);
+        toMonitor->write(msg);
     }
 }
 
