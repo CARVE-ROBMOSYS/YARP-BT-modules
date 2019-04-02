@@ -13,7 +13,7 @@
 #ifndef ROBOTINTERACTION_H
 #define ROBOTINTERACTION_H
 #include <yarp/os/BufferedPort.h>
-
+#include <vector>
 using namespace yarp::os;
 
 
@@ -23,7 +23,7 @@ public:
     RobotInteraction();
 
     bool configure();
-    bool sendMessage(std::string message);
+    bool sendMessage(std::vector<std::string> message_list);
     bool resetBlackboard();
     bool readMessage(std::string &message);
     bool closeDoor();

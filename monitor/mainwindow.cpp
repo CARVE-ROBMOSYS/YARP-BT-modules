@@ -138,12 +138,12 @@ void MainWindow::on_pushButton_resetbb_released()
 
 void MainWindow::on_pushButton_this_is_released()
 {
-    robot_interaction_prt_->sendMessage("this is the Room");
+    robot_interaction_prt_->sendMessage({"this is the ", "Room"});
 }
 
 void MainWindow::on_pushButton_help_released()
 {
-    robot_interaction_prt_->sendMessage("help given");
+    robot_interaction_prt_->sendMessage({"help given"});
 
 }
 

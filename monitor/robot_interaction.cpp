@@ -93,10 +93,16 @@ bool RobotInteraction::configure()
 }
 
 
-bool RobotInteraction::sendMessage(std::string message)
+bool RobotInteraction::sendMessage(std::vector<std::string> message_list)
 {
     Bottle message_btl;
-    message_btl.addString(message);
+
+
+    for (int i = 0; i< message_list.size(); i++)
+    {
+        message_btl.addString(message_list.at(i));
+    }
+
     robot_output_messages_port_.write(message_btl);
     return true;
 }
