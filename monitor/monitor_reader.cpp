@@ -25,7 +25,6 @@ MonitorReader::MonitorReader()
 bool MonitorReader::configure(std::vector<std::string> name_list)
 {
 
-    return true;
     // initializes yarp network
     yarp::os::Network yarp;
     if (!yarp::os::Network::checkNetwork(5.0))

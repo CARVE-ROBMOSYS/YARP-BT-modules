@@ -76,8 +76,8 @@ void MainWindow::setupWindow(std::vector<std::string> name_list, MonitorReader* 
     ui->tableWidget->setColumnWidth(1, minimum_column_1_width);
 
     // sets the width of the table
-    ui->tableWidget->setFixedWidth(minimum_column_0_width + minimum_column_1_width + 20 );
-    ui->tableWidget->setFixedHeight((name_list.size() + 1)*ui->tableWidget->rowHeight(1) + 20);
+    ui->tableWidget->setFixedWidth(minimum_column_0_width + minimum_column_1_width + 30 );
+    ui->tableWidget->setFixedHeight((name_list.size() + 1)*ui->tableWidget->rowHeight(1) + 10);
     // Sets a timer that calls periodiacally the function update()
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
@@ -88,15 +88,14 @@ void MainWindow::setupWindow(std::vector<std::string> name_list, MonitorReader* 
 
 void MainWindow::update()
 {
-std::string new_message;
-   bool has_message = robot_interaction_prt_->readMessage(new_message);
+    std::string new_message;
+    bool has_message = robot_interaction_prt_->readMessage(new_message);
 
-   if (has_message)
-   {
-       ui->textBrowser->append(QTime::currentTime().toString() +" The robot said: " +new_message.c_str());
-   }
+    if (has_message)
+    {
+        ui->textBrowser->append(QTime::currentTime().toString() +" The robot said: " +new_message.c_str());
+    }
 
-    return;
     // requests the updated list of states to the monitor and updates the table accordingly
     std::vector<std::string> updated_list = monitor_prt_->updateList();
 
