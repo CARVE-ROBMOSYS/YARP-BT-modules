@@ -21,7 +21,7 @@ class MonitorReader
 {
 public:
     MonitorReader();
-    bool configure(std::vector<std::string> name_list);
+    bool configure(std::vector<std::__cxx11::string> &name_list);
     std::vector<std::string> updateList();
 
 private :

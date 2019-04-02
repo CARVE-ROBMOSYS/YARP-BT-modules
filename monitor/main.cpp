@@ -29,27 +29,19 @@ int main(int argc, char *argv[])
     RobotInteraction* interaction = new RobotInteraction();
 
 
-    rf.configure(argc, argv);
-
-
-    std::string filename = rf.find("filename").asString();
-    std::vector<std::string> names;
-
-    // read the list of skills from a filename
-    ifstream input(filename);
-    if (input.is_open())
+    if(!rf.configure(argc, argv))
     {
-        std::string name;
-
-        while (input >> name)
-        {
-            names.push_back(name);
-        }
-    }
-    else
-    {
-        yError() << "[GUI] Cannot open the file" << filename;
+        yError() << "Cannot open config file " << rf.getContext() << rf.find("from").asString();
         return 1;
+    }
+
+    std::vector<std::string> names;
+    // read the list of skills from a filename
+    Bottle skills(rf.findGroup("skills").tail());
+
+    for(auto i=0; i<skills.size(); i++)
+    {
+        names.emplace_back(skills.get(i).asList()->get(0).asString());
     }
 
     // configures the monitor's reader (open the YARP ports)
@@ -58,6 +50,8 @@ int main(int argc, char *argv[])
     if (!is_ok)
     {
         yError() << "[GUI] Cannot open the GUI";
+        w.close();
+        a.exit();
         return 1;
     }
 

@@ -22,7 +22,7 @@ MonitorReader::MonitorReader()
 
 }
 
-bool MonitorReader::configure(std::vector<std::string> name_list)
+bool MonitorReader::configure(std::vector<std::string> &name_list)
 {
 
     // initializes yarp network
@@ -32,7 +32,6 @@ bool MonitorReader::configure(std::vector<std::string> name_list)
         yError() << " YARP server not available!";
         return false;
     }
-
 
     // opens the RPC ports used to request the states of the monitors
     for(std::vector<std::string>::iterator it = name_list.begin(); it != name_list.end(); ++it) {

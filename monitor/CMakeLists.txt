@@ -25,7 +25,6 @@ set(MONTOR_SRC mainwindow.cpp
                mainwindow.h
     )
 
-add_executable(monitor main.cpp ${MONTOR_SRC}
-               )
+add_executable(monitorGui main.cpp ${MONTOR_SRC})
 
-target_link_libraries(monitor ${YARP_LIBRARIES} Qt5::Widgets)
+target_link_libraries(monitorGui ${YARP_LIBRARIES} Qt5::Widgets)
