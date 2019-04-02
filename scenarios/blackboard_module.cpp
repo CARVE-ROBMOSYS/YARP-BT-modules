@@ -203,11 +203,11 @@ public:
         set("InvPose_navParams", Value("0.1 False"));
         set("RobotAtInvPose", Value("False"));
 
-        set("KeepArmsForGrasp",         Value("joint ( "
+        set("homeArms",                 Value("(joint ( "
                                               "(left_arm  45 60 10 80 18) "
                                               "(right_arm 45 60 10 80 18) "
                                               "(torso 0.01) "
-                                              ") KeepArmsForGrasp"));
+                                              ") KeepArmsForGrasp)"));
 
         // Values for simulation may be different wrt the real world, so let's use
         // a dedicated set of parameters with <Sim> suffix
@@ -222,11 +222,11 @@ public:
         set("FindBottleSim_navParams",   Value("0.35 True"));
         set("RobotAtFindBottleSim",      Value("False"));
 
-        set("InvPoseSim",                Value("sanquirico 10.9152 1.68453 -12.7319"));
+        set("InvPoseSim",                Value("sanquirico 10.8564 1.4303 -16.35"));
         set("InvPoseSim_navParams",      Value("0.1 False"));
         set("RobotAtInvPoseSim",         Value("False"));
 
-        set("grasp Bottle",              Value("joint ( (right_arm 28.8 37.35 -10.2 54.9 40) ) BottleGrasped"));
+        set("grasp Bottle",              Value("(joint ( (right_arm 28.8 37.35 -10.2 54.9 40) ) BottleGrasped)"));
     }
 };
 
