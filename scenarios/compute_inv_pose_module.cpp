@@ -47,7 +47,7 @@ public:
         // without random
         std::string inv_pose;
         if(simulated)
-            inv_pose = "sanquirico 10.382 1.845 -0.26";          // simulation
+            inv_pose = "sanquirico 10.25 1.845 -0.26";          // simulation
         else
             inv_pose = "sanquirico 11.18 1.90 0.0";                 // real robot
 
