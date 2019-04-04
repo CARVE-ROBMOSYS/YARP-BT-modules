@@ -34,6 +34,8 @@ private:
     yarp::os::Port toMonitor_port;
     yarp::os::Port askHelp_port;
 
+    bool helpReceived{false};
+
 public:
     ReturnStatus request_tick(const std::string& params = "") override
     {
@@ -50,6 +52,15 @@ public:
         msg.event    = "e_req";
         toMonitor_port.write(msg);
         set_status(ret);
+
+        if(helpReceived)
+        {
+            ret = BT_SUCCESS;
+            BTMonitorMsg msg;
+            msg.skill    = getName();
+            msg.event    = "e_from_env";
+            toMonitor_port.write(msg);
+        }
         return ret;
     }
 
@@ -88,6 +99,8 @@ public:
         if (command.get(0).asString() == "help given")
         {
             yInfo() << "Got 'help given' command";
+            helpReceived  = true;
+
             // send message to monitor: we are done with it
             BTMonitorMsg msg;
             msg.skill    = getName();
