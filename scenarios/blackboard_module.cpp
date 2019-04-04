@@ -222,10 +222,6 @@ public:
         set("FindBottleSim_navParams",   Value("0.35 True"));
         set("RobotAtFindBottleSim",      Value("False"));
 
-        set("InvPoseSim",                Value("sanquirico 10.8564 1.4303 -16.35"));
-        set("InvPoseSim_navParams",      Value("0.1 False"));
-        set("RobotAtInvPoseSim",         Value("False"));
-
         set("grasp Bottle",              Value("(joint ( (right_arm 28.8 37.35 -10.2 54.9 40) ) BottleGrasped)"));
     }
 };

@@ -156,12 +156,12 @@ bool RobotInteraction::openDoor()
     Bottle cmd, reply;
     cmd.addString("setPose");
     cmd.addString("Door");
-    cmd.addDouble(7.821);
-    cmd.addDouble(0.560);
-    cmd.addDouble(0.719);
+    cmd.addDouble(10.6);
+    cmd.addDouble(0.0);
+    cmd.addDouble(0.72);
     cmd.addDouble(0.0);
     cmd.addDouble(0.0);
-    cmd.addDouble(1.330);
+    cmd.addDouble(1.37);
 
     world_interface_client_port_.write(cmd, reply);
     return true;
