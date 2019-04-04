@@ -46,9 +46,8 @@ public:
 
         // without random
         std::string inv_pose;
-
         if(simulated)
-            inv_pose = "sanquirico 10.25 1.845 -0.26";          // simulation
+            inv_pose = "sanquirico 10.342 1.9 -15";          // simulation
         else
             inv_pose = "sanquirico 11.18 1.90 0.0";                 // real robot
 
@@ -114,7 +113,7 @@ public:
         this->configure_tick_server("/"+this->getName());
         blackboard_port.open("/"+this->getName() + "/blackboard/rpc:o");
 
-        if(rf.find("sim").asBool())
+        if(rf.check("sim"))
             simulated = true;
 
         // to connect to relative monitor
