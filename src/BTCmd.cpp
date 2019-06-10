@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2018 Istituto Italiano di Tecnologia (IIT)
+ * Copyright (C) 2006-2019 Istituto Italiano di Tecnologia (IIT)
  * All rights reserved.
  *
  * This software may be modified and distributed under the terms of the
@@ -19,24 +19,25 @@ public:
   std::string params;
   ReturnStatus _return;
   void init(const std::string& params);
-  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
-  virtual bool read(yarp::os::ConnectionReader& connection) override;
+  bool write(yarp::os::ConnectionWriter& connection) const override;
+  bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class BTCmd_request_status : public yarp::os::Portable {
 public:
   ReturnStatus _return;
   void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
-  virtual bool read(yarp::os::ConnectionReader& connection) override;
+  bool write(yarp::os::ConnectionWriter& connection) const override;
+  bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 class BTCmd_request_halt : public yarp::os::Portable {
 public:
+  std::string params;
   ReturnStatus _return;
-  void init();
-  virtual bool write(yarp::os::ConnectionWriter& connection) const override;
-  virtual bool read(yarp::os::ConnectionReader& connection) override;
+  void init(const std::string& params);
+  bool write(yarp::os::ConnectionWriter& connection) const override;
+  bool read(yarp::os::ConnectionReader& connection) override;
 };
 
 bool BTCmd_request_tick::write(yarp::os::ConnectionWriter& connection) const {
@@ -93,8 +94,9 @@ void BTCmd_request_status::init() {
 
 bool BTCmd_request_halt::write(yarp::os::ConnectionWriter& connection) const {
   yarp::os::idl::WireWriter writer(connection);
-  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeListHeader(3)) return false;
   if (!writer.writeTag("request_halt",1,2)) return false;
+  if (!writer.writeString(params)) return false;
   return true;
 }
 
@@ -112,8 +114,9 @@ bool BTCmd_request_halt::read(yarp::os::ConnectionReader& connection) {
   return true;
 }
 
-void BTCmd_request_halt::init() {
+void BTCmd_request_halt::init(const std::string& params) {
   _return = (ReturnStatus)0;
+  this->params = params;
 }
 
 BTCmd::BTCmd() {
@@ -139,12 +142,12 @@ ReturnStatus BTCmd::request_status() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-ReturnStatus BTCmd::request_halt() {
+ReturnStatus BTCmd::request_halt(const std::string& params) {
   ReturnStatus _return = (ReturnStatus)0;
   BTCmd_request_halt helper;
-  helper.init();
+  helper.init(params);
   if (!yarp().canWrite()) {
-    yError("Missing server method '%s'?","ReturnStatus BTCmd::request_halt()");
+    yError("Missing server method '%s'?","ReturnStatus BTCmd::request_halt(const std::string& params)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -186,8 +189,12 @@ bool BTCmd::read(yarp::os::ConnectionReader& connection) {
       return true;
     }
     if (tag == "request_halt") {
+      std::string params;
+      if (!reader.readString(params)) {
+        params = "";
+      }
       ReturnStatus _return;
-      _return = request_halt();
+      _return = request_halt(params);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -243,7 +250,7 @@ std::vector<std::string> BTCmd::help(const std::string& functionName) {
       helpString.emplace_back("ReturnStatus request_status() ");
     }
     if (functionName=="request_halt") {
-      helpString.emplace_back("ReturnStatus request_halt() ");
+      helpString.emplace_back("ReturnStatus request_halt(const std::string& params = \"\") ");
     }
     if (functionName=="help") {
       helpString.emplace_back("std::vector<std::string> help(const std::string& functionName=\"--all\")");

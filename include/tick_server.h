@@ -40,14 +40,14 @@ public:
     // On the server side, the request_tick function implements a bit of logic to actually execute the tick
     // only when the status is either idle or halted, otherwise it will immediately return running.
     // Re-implement this function in case this helper logic is not required.
-    virtual ReturnStatus request_tick(const std::string& params = "");
+    virtual ReturnStatus request_tick(const std::string& params = "") override;
 
 
     // implementation of Thrift command request_status
-    virtual ReturnStatus request_status();
+    virtual ReturnStatus request_status() override;
 
     void set_status(ReturnStatus status);
-    virtual ReturnStatus request_halt();
+    virtual ReturnStatus request_halt(const std::string& params = "") override;
 
     // Request_tick will call this function when a meaningful tick is called, i.e. current status is
     // either idle or halted. If this implementation has blocking calls, set threaded to true in

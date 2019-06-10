@@ -19,5 +19,17 @@ target_link_libraries(goto_inv_pose_module ${YARP_LIBRARIES} )
 add_executable(set_inv_pose_invalid_module set_inv_pose_invalid_module.cpp ${YARP_TICK_LIB_SRC})
 target_link_libraries(set_inv_pose_invalid_module ${YARP_LIBRARIES} )
 
-add_executable(always_running_module always_running_module.cpp ${YARP_TICK_LIB_SRC})
-target_link_libraries(always_running_module ${YARP_LIBRARIES} )
+add_executable(ask_for_help ask_for_help.cpp ${YARP_TICK_LIB_SRC})
+target_link_libraries(ask_for_help ${YARP_LIBRARIES} )
+
+add_executable(locate_bottle_module locate_bottle_module.cpp ${YARP_TICK_LIB_SRC})
+target_link_libraries(locate_bottle_module ${YARP_LIBRARIES} )
+
+add_executable(grasp_bottle_module grasp_bottle_module.cpp ${YARP_TICK_LIB_SRC})
+target_link_libraries(grasp_bottle_module ${YARP_LIBRARIES} )
+
+add_executable(pour_drink_module pour_drink_module.cpp ${YARP_TICK_LIB_SRC})
+target_link_libraries(pour_drink_module ${YARP_LIBRARIES} )
+
+add_executable(text_to_action text_to_action.cpp)
+target_link_libraries(text_to_action ${YARP_LIBRARIES} )

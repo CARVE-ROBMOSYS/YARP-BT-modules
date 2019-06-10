@@ -82,7 +82,7 @@ ReturnStatus TickServer::request_tick(const std::string &params)
 }
 
 
-ReturnStatus TickServer::request_halt()
+ReturnStatus TickServer::request_halt(const std::string& params)
 {
     ReturnStatus return_status = status_;
     switch (return_status)

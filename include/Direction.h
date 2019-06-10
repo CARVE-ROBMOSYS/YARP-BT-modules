@@ -9,24 +9,20 @@
 // This is an automatically generated file.
 // It could get re-generated if the ALLOW_IDL_GENERATION flag is on.
 
-#ifndef YARP_THRIFT_GENERATOR_ENUM_ReturnStatus
-#define YARP_THRIFT_GENERATOR_ENUM_ReturnStatus
+#ifndef YARP_THRIFT_GENERATOR_ENUM_Direction
+#define YARP_THRIFT_GENERATOR_ENUM_Direction
 
 #include <yarp/os/Wire.h>
 #include <yarp/os/idl/WireTypes.h>
 
-enum ReturnStatus {
-  BT_RUNNING = 0,
-  BT_SUCCESS = 1,
-  BT_FAILURE = 2,
-  BT_IDLE = 3,
-  BT_HALTED = 4,
-  BT_ERROR = 5
+enum Direction {
+  REQUEST = 0,
+  REPLY = 1
 };
 
-class ReturnStatusVocab;
+class DirectionVocab;
 
-class ReturnStatusVocab : public yarp::os::idl::WireVocab {
+class DirectionVocab : public yarp::os::idl::WireVocab {
 public:
   int fromString(const std::string& input) override;
   std::string toString(int input) const override;

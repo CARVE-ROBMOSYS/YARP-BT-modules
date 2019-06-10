@@ -23,6 +23,8 @@
 
 //behavior trees imports
 #include <include/tick_server.h>
+#include <BTMonitorMsg.h>
+#include <yarp/os/PortablePair.h>
 
 
 using namespace yarp::os;
@@ -32,26 +34,74 @@ class SetInvPoseInvalid : public TickServer
 {
 private:
     Bottle cmd, response;
+
 public:
+    Port toMonitor_port;
     yarp::os::Port blackboard_port;
 
 public:
     ReturnStatus execute_tick(const std::string& params = "") override
     {
         set_status(BT_RUNNING);
+        yInfo() << "[Set invalid pose] Action started";
 
-        yInfo() << "[GotoInvPose] Action started";
         cmd.clear();
         response.clear();
         cmd.addString("set");
         cmd.addString("InvPoseValid");
         cmd.addString("False");
+        bool ret = blackboard_port.write(cmd,response);
+
+        if(ret)
+        {
+            // send message to monitor: we are doing stuff
+            BTMonitorMsg msg;
+            msg.skill     = "setInvPoseInvalid";
+            msg.event     = "e_req";
+            toMonitor_port.write(msg);
+        }
+
+        cmd.clear();
+        response.clear();
+        cmd.addString("set");
+        cmd.addString("InvPoseComputed");
+        cmd.addString("False");
         blackboard_port.write(cmd,response);
-        set_status(BT_SUCCESS);
-        return BT_SUCCESS;
+
+        cmd.clear();
+        response.clear();
+        cmd.addString("set");
+        cmd.addString("InvPose");
+        cmd.addString("nope 0 0 0");
+        blackboard_port.write(cmd,response);
+        cmd.clear();
+        response.clear();
+        cmd.addString("set");
+        cmd.addString("RobotAtInvPose");
+        cmd.addString("False");
+        blackboard_port.write(cmd,response);
+
+        cmd.clear();
+        response.clear();
+        cmd.addString("set");
+        cmd.addString("BottleLocated");
+        cmd.addString("False");
+        ret = blackboard_port.write(cmd,response);
+
+        if(ret)
+        {
+            // send message to monitor: we are done
+            yarp::os::PortablePair<BTMonitorMsg, Bottle> monitor;
+            BTMonitorMsg &msg = monitor.head;
+            msg = monitor.head;
+            msg.skill     = "setInvPoseInvalid";
+            msg.event     = "e_from_env";
+            toMonitor_port.write(monitor);
+        }
+
+        // This module always returns running, as from @miccol specifications
+        return BT_RUNNING;
     }
-
-
 };
 
 
@@ -68,6 +118,7 @@ int main(int argc, char * argv[])
     SetInvPoseInvalid skill;
     skill.configure_tick_server("/setInvPoseInvalid");
     skill.blackboard_port.open("/setInvPoseInvalid/blackboard/rpc:o");
+    skill.toMonitor_port.open("/setInvPoseInvalid/monitor:o");
 
     /*
         std::cout << "Action ready. To send commands to the action, open and type: yarp rpc /setInvPoseInvalid/tick:i,"

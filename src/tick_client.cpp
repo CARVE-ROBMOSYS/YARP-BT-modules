@@ -11,50 +11,128 @@
  *           Alberto Cardellino <alberto.cardellino@iit.it>
  */
 
+#include <memory>
 #include <iostream>
-#include <thread>
-#include <include/tick_client.h>
 
 #include <yarp/os/LogStream.h>
+#include <yarp/os/PortablePair.h>
+
+#include <TickCommand.h>
+#include <include/tick_client.h>
+
+using namespace std;
+using namespace yarp::os;
 
 TickClient::TickClient() : BTCmd()
 {
     status_ = BT_IDLE;
 }
 
-bool TickClient::configure(std::string name)
+TickClient::~TickClient()
 {
-    module_name_ = name;
-    std::string cmd_port_name = module_name_ + "/tick:o";
+    cmd_port_.close();
+    toMonitor->close();
+}
+
+bool TickClient::configure(std::string portPrefix, bool monitor, std::string skillName)
+{
+    bool ret = true;
+    if(skillName == "")
+    {
+        skillName = portPrefix;
+    }
+
+    module_name_ = skillName;
+    std::string cmd_port_name = portPrefix + "/tick:o";
 
     if (!cmd_port_.open(cmd_port_name.c_str())) {
         std::cout << module_name_ << ": Unable to open port " << cmd_port_name << std::endl;
         return false;
     }
 
+    if(monitor)
+    {
+        useMonitor = true;
+        toMonitor = std::make_unique<yarp::os::Port>();
+        ret = toMonitor->open(cmd_port_name + "/monitor:o");
+    }
+
     this->yarp().attachAsClient(cmd_port_);
-    return true;
+    return ret;
 }
 
 bool TickClient::connect(std::string serverName)
 {
     std::cout << "Connecting to " << serverName + "/tick:i";
-    return cmd_port_.addOutput(serverName + "/tick:i");
+    serverName_ = serverName;
+    return cmd_port_.addOutput(serverName_ + "/tick:i");
+}
+
+bool TickClient::propagateCmd(TickCommand cmd, const std::string &params)
+{
+    return propagateToMonitor(cmd, Direction::REQUEST, params);
+}
+
+bool TickClient::propagateReply(TickCommand cmd, ReturnStatus reply)
+{
+    return propagateToMonitor(cmd, Direction::REPLY, "", reply);
+}
+
+bool TickClient::propagateToMonitor(TickCommand cmdType, Direction dir, const string &params, ReturnStatus reply)
+{
+    if(useMonitor)
+    {
+        BTMonitorMsg msg;
+
+        msg.skill    = module_name_;
+        msg.event = "unknown";
+
+        if((cmdType == BT_TICK) && (Direction::REQUEST == dir))
+            msg.event = "e_from_bt"; 
+        if((cmdType == BT_TICK) && (Direction::REPLY == dir))
+            msg.event = "e_to_bt";
+
+        if(cmdType == BT_STATUS)
+            msg.event = "e_get_status";
+
+        if((cmdType == BT_HALT) && (Direction::REQUEST == dir))
+            msg.event = "halt_from_bt";
+        if((cmdType == BT_HALT) && (Direction::REPLY == dir))
+            msg.event = "halted_to_bt";
+
+        toMonitor->write(msg);
+    }
 }
 
 ReturnStatus TickClient::request_tick(const std::string &params)
 {
 //    yTrace() << "\n\t params " << params << " threaded " << threaded;
+
+    // Propagate message to the monitor
+    yInfo() << " propagate command";
+    propagateCmd(BT_TICK, params);
+
+    // Send the actual message to the server
     status_ = BTCmd::request_tick(params);
+
+    // Propagate reply to the monitor
+    propagateReply(BT_TICK, status_);
+
     return status_;
 }
 
-ReturnStatus TickClient::request_halt()
+ReturnStatus TickClient::request_halt(const string &params)
 {
     if(status_ == BT_RUNNING)
     {
+        // Propagate message to the monitor
+        propagateCmd(BT_HALT);
+
         //I need halt the node
-        BTCmd::request_halt();
+        BTCmd::request_halt(params);
+
+        // Propagate reply to the monitor
+        propagateReply(BT_HALT, status_);
     }
 }
 
