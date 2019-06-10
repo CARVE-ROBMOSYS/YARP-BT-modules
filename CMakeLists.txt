@@ -38,37 +38,10 @@ find_package(YARP REQUIRED)
 #########################################################
 # GENERATING FILES FOR BEHAVIOR TREE'S THRIFT COMMANDS
 #########################################################
-set(generated_libs_dir "${CMAKE_CURRENT_SOURCE_DIR}")
-yarp_idl_to_dir(BTCmd.thrift ${generated_libs_dir}  sources headers include_dirs)
-yarp_idl_to_dir(BT_monitoring.thrift ${generated_libs_dir}  sources2 headers2 include_dirs2)
-
-message("sources ${sources}")
-message("sources2 ${sources2}")
-
-include_directories(${CMAKE_SOURCE_DIR} )
-include_directories(${PROJECT_SOURCE_DIR}/include/)
-
-
-# set(YARP_BT_MODULES_SRC src/yarp_bt_module.cpp
-#                         src/BTCmd.cpp
-#                         src/ReturnStatus.cpp)
-
-set(YARP_TICK_LIB_SRC   ${sources} ${sources2}
-                        ${PROJECT_SOURCE_DIR}/src/tick_server.cpp
-                        ${PROJECT_SOURCE_DIR}/src/tick_client.cpp
-                        )
-
-
-#####################################################
-# Building library
+# AND Building library
 #####################################################
 
-add_library(${PROJECT_NAME} SHARED ${YARP_TICK_LIB_SRC})
-target_link_libraries(${PROJECT_NAME} PUBLIC ${YARP_LIBRARIES})
-
-target_include_directories(${PROJECT_NAME}
-        PUBLIC      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-                    $<INSTALL_INTERFACE:include>)
+add_subdirectory(thrift)
 
 
 #####################################################
@@ -86,21 +59,3 @@ add_subdirectory(monitor)
 add_subdirectory(monitors)
 
 
-######################################################
-# EXPORTS
-
-set(PROJECT_CONFIG ${PROJECT_NAME}Config)
-export(TARGETS ${PROJECT_NAME}
-       FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_CONFIG}.cmake")
-
-install(TARGETS ${PROJECT_NAME}
-   EXPORT ${PROJECT_CONFIG}
-   ARCHIVE DESTINATION lib
-   LIBRARY DESTINATION lib   )
-
-INSTALL( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
-    DESTINATION include
-    FILES_MATCHING PATTERN "*.h*")
-
-install(EXPORT ${PROJECT_CONFIG}
-    DESTINATION "lib/cmake")
