@@ -1,7 +1,7 @@
 project(carveMonitors)
 cmake_minimum_required(VERSION 2.8)
 
-find_package(rFSM )
+find_package(rFSM QUIET)
 set(execName "monitor")
 
 if(rFSM_FOUND)
@@ -13,5 +13,5 @@ if(rFSM_FOUND)
     add_executable(${execName} main.cpp ${MONITOR_SOURCES} ${YARP_TICK_LIB_SRC})
     target_link_libraries(${execName} ${YARP_LIBRARIES} rFSMTools::rFSM)
 else()
-    message("rFSM not found, monitor will not be compiled")
+    message("\n -- NOTE: rFSM not found, monitor will not be compiled \n")
 endif()
