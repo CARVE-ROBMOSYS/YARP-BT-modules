@@ -1,35 +1,38 @@
 #####################################################
 # Building Executables for CARVE Scenario 1
 #####################################################
-add_executable(blackboard_module blackboard_module.cpp ${YARP_TICK_LIB_SRC})
-target_link_libraries(blackboard_module ${YARP_LIBRARIES} )
+add_executable(blackboard_module blackboard_module.cpp )
+target_link_libraries(blackboard_module ${YARP_LIBRARIES} ${PROJECT_NAME} )
 
-add_executable(meta_conditions_module meta_conditions_module.cpp ${YARP_TICK_LIB_SRC})
-target_link_libraries(meta_conditions_module ${YARP_LIBRARIES} )
+add_executable(meta_conditions_module meta_conditions_module.cpp)
+target_link_libraries(meta_conditions_module ${YARP_LIBRARIES} ${PROJECT_NAME})
 
-add_executable(move_joints_module move_joints_module.cpp ${YARP_TICK_LIB_SRC})
-target_link_libraries(move_joints_module ${YARP_LIBRARIES} )
+add_executable(move_joints_module move_joints_module.cpp)
+target_link_libraries(move_joints_module ${YARP_LIBRARIES} ${PROJECT_NAME})
 
-add_executable(compute_inv_pose_module compute_inv_pose_module.cpp ${YARP_TICK_LIB_SRC})
-target_link_libraries(compute_inv_pose_module ${YARP_LIBRARIES} )
+add_executable(compute_inv_pose_module compute_inv_pose_module.cpp )
+target_link_libraries(compute_inv_pose_module ${YARP_LIBRARIES} ${PROJECT_NAME})
 
-add_executable(goto_inv_pose_module goto_inv_pose_module.cpp ${YARP_TICK_LIB_SRC})
-target_link_libraries(goto_inv_pose_module ${YARP_LIBRARIES} )
+add_executable(goto_inv_pose_module goto_inv_pose_module.cpp )
+target_link_libraries(goto_inv_pose_module ${YARP_LIBRARIES} ${PROJECT_NAME})
 
-add_executable(set_inv_pose_invalid_module set_inv_pose_invalid_module.cpp ${YARP_TICK_LIB_SRC})
-target_link_libraries(set_inv_pose_invalid_module ${YARP_LIBRARIES} )
+add_executable(set_inv_pose_invalid_module set_inv_pose_invalid_module.cpp )
+target_link_libraries(set_inv_pose_invalid_module ${YARP_LIBRARIES} ${PROJECT_NAME})
 
-add_executable(ask_for_help ask_for_help.cpp ${YARP_TICK_LIB_SRC})
-target_link_libraries(ask_for_help ${YARP_LIBRARIES} )
+add_executable(ask_for_help ask_for_help.cpp )
+target_link_libraries(ask_for_help ${YARP_LIBRARIES} ${PROJECT_NAME})
 
-add_executable(locate_bottle_module locate_bottle_module.cpp ${YARP_TICK_LIB_SRC})
-target_link_libraries(locate_bottle_module ${YARP_LIBRARIES} )
+add_executable(locate_bottle_module locate_bottle_module.cpp )
+target_link_libraries(locate_bottle_module ${YARP_LIBRARIES} ${PROJECT_NAME})
 
-add_executable(grasp_bottle_module grasp_bottle_module.cpp ${YARP_TICK_LIB_SRC})
-target_link_libraries(grasp_bottle_module ${YARP_LIBRARIES} )
+add_executable(grasp_bottle_module grasp_bottle_module.cpp )
+target_link_libraries(grasp_bottle_module ${YARP_LIBRARIES} ${PROJECT_NAME})
 
-add_executable(pour_drink_module pour_drink_module.cpp ${YARP_TICK_LIB_SRC})
-target_link_libraries(pour_drink_module ${YARP_LIBRARIES} )
+add_executable(pour_drink_module pour_drink_module.cpp )
+target_link_libraries(pour_drink_module ${YARP_LIBRARIES} ${PROJECT_NAME})
 
 add_executable(text_to_action text_to_action.cpp)
-target_link_libraries(text_to_action ${YARP_LIBRARIES} )
+target_link_libraries(text_to_action ${YARP_LIBRARIES} ${PROJECT_NAME})
+
+add_executable(navigation_module navigation_module.cpp )
+target_link_libraries(navigation_module ${YARP_LIBRARIES} ${PROJECT_NAME})

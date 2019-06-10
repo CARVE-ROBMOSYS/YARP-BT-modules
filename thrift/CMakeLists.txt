@@ -12,8 +12,8 @@ yarp_idl_to_dir(INPUT_FILES BTCmd.thrift
                 SOURCES_VAR BT_CMD_SOURCES
                 HEADERS_VAR BT_CMD_HEADERS
                 INCLUDE_DIRS_VAR BT_CMD_INCLUDE_DIRS
-                VERBOSE)
-message("** INCLUDE_DIRS_VAR ${BT_CMD_INCLUDE_DIRS} idl for BT_cmd ** ")
+#                VERBOSE
+                )
 
 message("\n** Generating idl for BT_monitor ** ")
 yarp_idl_to_dir(INPUT_FILES BT_monitoring.thrift
@@ -21,8 +21,8 @@ yarp_idl_to_dir(INPUT_FILES BT_monitoring.thrift
                 SOURCES_VAR BT_MON_SOURCES
                 HEADERS_VAR BT_MON_HEADERS
                 INCLUDE_DIRS_VAR BT_MON_INCLUDE_DIRS
-                VERBOSE)
-message("** INCLUDE_DIRS_VAR ${BT_MON_INCLUDE_DIRS} idl for BT_monitor ** ")
+#                VERBOSE
+                )
 
 include_directories(${BT_CMD_INCLUDE_DIRS} ${BT_MON_INCLUDE_DIRS} )
 
