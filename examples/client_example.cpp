@@ -15,11 +15,16 @@
 #include <iostream>           // for std::cout
 #include <chrono>             // for seconds
 #include <thread>             //for this_thread::sleep_for
+
 //YARP imports
 #include <yarp/os/Network.h>  // for yarp::os::Network
+#include <yarp/os/Property.h> // for yError()
 #include <yarp/os/LogStream.h> // for yError()
 
-#include <include/tick_client.h>
+#include <yarp/BT_wrappers/tick_client.h>
+
+using namespace yarp::BT_wrappers;
+using namespace yarp::os;
 
 int main(int argc, char * argv[])
 {
@@ -32,15 +37,9 @@ int main(int argc, char * argv[])
     }
 
     TickClient client;
-    client.configure("/tick_Y1");
+    client.configure_TickClient("/TickClient", "Test_1");
 
-/*
-    std::cout << "Action ready. To send commands to the action, open and type: yarp rpc /ActionExample/cmd,"
-              <<" then type help to find the available commands "
-              << std::endl;
-*/
-
-    while (!client.connect("/tick_Y1"))
+    while (!client.connect("/TickServer/Test_1"))
     {
         yInfo() << "Waiting for server to be ready";
         std::this_thread::sleep_for( std::chrono::seconds(1));
@@ -48,33 +47,34 @@ int main(int argc, char * argv[])
 
     ReturnStatusVocab a;
 
+    ActionID action;
+    action.action_ID = 1;
+    action.target    = "Always_Success";
+    action.BT_filename = "BT_test.xml";
+
+    Property params;
+    params.put("paramName", "paramValue");
+
     while (true)
     {
-        int sleep = 5;
+        int sleep = 2;
         yInfo() << "Running";
-/*
-        yInfo() << "request_status " << a.toString(client.request_status());
-        std::this_thread::sleep_for( std::chrono::seconds(sleep));
-*/
-        std::cout << "request_tick cond_false "  << std::flush;
-        std::cout << a.toString(client.request_tick("cond_false")) << std::endl;;
+
+        std::this_thread::sleep_for( std::chrono::seconds(1));
+        yDebug() << "request_tick " << action.target << " without params";
+        yDebug() << a.toString(client.request_tick(action));
         std::this_thread::sleep_for( std::chrono::seconds(sleep));
 
-        std::cout << "request_tick cond_true  ... " << std::flush;
-        std::cout << a.toString(client.request_tick("cond_true")) << std::endl;
+        yDebug() << "request_tick " << action.target << " with params";
+        yDebug() << a.toString(client.request_tick(action, params));
         std::this_thread::sleep_for( std::chrono::seconds(sleep));
 
-
-        std::cout << "request_tick act_true   " << std::flush;
-        std::cout << a.toString(client.request_tick("act_true")) << std::endl;;
+        yDebug() << "request_tick " << action.target << " without params";
+        yDebug() << a.toString(client.request_tick(action));
         std::this_thread::sleep_for( std::chrono::seconds(sleep));
 
-        std::cout << "request_tick act_false  " << std::flush;
-        std::cout << a.toString(client.request_tick("act_false")) << std::endl;;
-        std::this_thread::sleep_for( std::chrono::seconds(sleep));
-
-        std::cout << "request_halt   "  << std::flush;
-        std::cout << client.request_halt() << std::endl;;
+        yDebug() << "request_tick " << action.target << " without params";
+        yDebug() << a.toString(client.request_tick(action));
         std::this_thread::sleep_for( std::chrono::seconds(sleep));
     }
     return 0;
