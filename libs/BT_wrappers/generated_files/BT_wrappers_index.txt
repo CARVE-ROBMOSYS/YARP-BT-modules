@@ -1,0 +1,6 @@
+include/yarp/BT_wrappers/ReturnStatus.h
+src/ReturnStatus.cpp
+include/yarp/BT_wrappers/ActionID.h
+src/ActionID.cpp
+include/yarp/BT_wrappers/BT_request.h
+src/BT_request.cpp
