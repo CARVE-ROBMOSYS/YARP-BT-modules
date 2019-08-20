@@ -59,6 +59,10 @@ add_subdirectory(libs)
 #####################################################
 # Building Examples about lib
 #####################################################
+#####################################################
+# Building executables
+#####################################################
+add_subdirectory(BT_engine)
 
 
 include(InstallBasicPackageFiles)
