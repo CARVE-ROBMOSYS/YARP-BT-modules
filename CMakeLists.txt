@@ -5,18 +5,18 @@
 #                                                                              #
 ################################################################################
 # @authors: Michele Colledanchise <michele.colledanchise@iit.it>
-
-project(YARPBTModules)
+# @authors: Alberto Cardellino <alberto.cardellino@iit.it>
 cmake_minimum_required(VERSION 3.0)
 
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+project(YARPBTModules   LANGUAGES CXX C
+                        VERSION   1.0.0)
 
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 ##########################################################
 ## ENABLE C++14 and thread
@@ -31,9 +31,15 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 #########################################################
+# FIND YCM
+#########################################################
+find_package(YCM REQUIRED)
+
+#########################################################
 # FIND YARP
 #########################################################
-find_package(YARP REQUIRED)
+find_package(YARP REQUIRED COMPONENTS OS dev math idl_tools)
+
 
 #########################################################
 # GENERATING FILES FOR BEHAVIOR TREE'S THRIFT COMMANDS
@@ -41,21 +47,19 @@ find_package(YARP REQUIRED)
 # AND Building library
 #####################################################
 
-add_subdirectory(thrift)
-
-
 #####################################################
 # Building Examples about lib
 #####################################################
 
-add_executable(client_example examples/client_example.cpp)
-target_link_libraries(client_example ${PROJECT_NAME} )
 
-add_executable(server_example examples/server_example.cpp)
-target_link_libraries(server_example ${PROJECT_NAME})
+include(InstallBasicPackageFiles)
+install_basic_package_files(${PROJECT_NAME}
+                            VERSION ${${PROJECT_NAME}_VERSION}
+                            COMPATIBILITY AnyNewerVersion
+                            VARS_PREFIX ${PROJECT_NAME}
+                            NO_CHECK_REQUIRED_COMPONENTS_MACRO)
 
-add_subdirectory(scenarios)
-add_subdirectory(monitor)
-add_subdirectory(monitors)
 
+# Add the uninstall target
+include(AddUninstallTarget)
 
