@@ -42,6 +42,14 @@ find_package(YARP REQUIRED COMPONENTS OS dev math idl_tools)
 
 
 #########################################################
+# FIND behaviour tree library
+#########################################################
+find_package(BehaviorTree REQUIRED)
+if(NOT BehaviorTree_FOUND)
+    message(WARNING "BehaviorTree lib not found. Modules for BT engine will not be compiled.")
+endif()
+
+#########################################################
 # GENERATING FILES FOR BEHAVIOR TREE'S THRIFT COMMANDS
 #########################################################
 # AND Building library
