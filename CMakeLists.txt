@@ -46,6 +46,7 @@ find_package(YARP REQUIRED COMPONENTS OS dev math idl_tools)
 #########################################################
 # AND Building library
 #####################################################
+add_subdirectory(libs)
 
 #####################################################
 # Building Examples about lib
