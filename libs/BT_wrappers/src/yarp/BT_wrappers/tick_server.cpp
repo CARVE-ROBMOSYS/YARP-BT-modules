@@ -37,6 +37,8 @@ private:
         ReturnStatus    status;
         std::atomic<bool> is_halt_requested;
         std::future<ReturnStatus> future_res;
+        std::mutex              _cv_mutex;
+        std::condition_variable _cv_wait_for_thread;
 
         ActionData() : status(BT_IDLE), is_halt_requested(false) {}
     };
@@ -84,8 +86,6 @@ bool TickServer::RequestHandler::request_terminate()
 
 ReturnStatus TickServer::RequestHandler::request_tick(const ActionID& target, const yarp::os::Property& params)
 {
-    // for synch between tick and halt
-    std::unique_lock<std::mutex> lk(_owner->_cv_mutex);
     // Place here a message for monitoring?
 
     // Get ActionData corresponding to requested ActionID;
@@ -93,6 +93,9 @@ ReturnStatus TickServer::RequestHandler::request_tick(const ActionID& target, co
     ActionData &targetData =  _targetMap[target];
     ReturnStatus return_status = targetData.status;
     ReturnStatusVocab statusString;
+
+    // for synch between tick and halt
+    std::unique_lock<std::mutex> lk(targetData._cv_mutex);
 
     yDebug() << "TickServer::RequestHandler::request_tick(action " << target.target << \
                 " params " << params.toString() << ") threaded is " << _owner->_threaded << " status is " << statusString.toString(return_status);
@@ -143,12 +146,12 @@ ReturnStatus TickServer::RequestHandler::request_tick(const ActionID& target, co
             {
                 yDebug() << "Spawning thread";
                 _owner->_thread_finished = false;
-                targetData.future_res = std::async([this, target, params]
+                targetData.future_res = std::async([this, &target, &params, &targetData]
                                                     {                    
                                                         ReturnStatus ret = _owner->request_tick(target, params);
                                                         // wake up condition variable
                                                         _owner->_thread_finished = true;
-                                                        _owner->_cv_wait_for_thread.notify_one();
+                                                        targetData._cv_wait_for_thread.notify_one();
                                                         return ret;
                                                     });
                 targetData.status = BT_RUNNING;
@@ -205,8 +208,8 @@ ReturnStatus TickServer::RequestHandler::request_halt(const ActionID& target, co
             if(_owner->_threaded)
             {
                 // wait until the running thread has finished
-                std::unique_lock<std::mutex> cv_lock(_owner->_cv_mutex);
-                _owner->_cv_wait_for_thread.wait(cv_lock, [this]{return this->_owner->_thread_finished;});
+                std::unique_lock<std::mutex> cv_lock(targetData._cv_mutex);
+                targetData._cv_wait_for_thread.wait(cv_lock, [this]{return this->_owner->_thread_finished;});
                 cv_lock.unlock();
                 yInfo() << "thread finished";
             }

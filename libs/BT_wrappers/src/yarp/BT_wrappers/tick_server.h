@@ -112,9 +112,6 @@ private:
 
     yarp::os::Port  _requestPort;
 
-    std::mutex              _cv_mutex;
-    std::condition_variable _cv_wait_for_thread;
-
     class RequestHandler;
     std::unique_ptr<RequestHandler> _requestHandler;
 };
