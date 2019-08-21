@@ -46,8 +46,7 @@ bool BtCpp_DummyServer::initialize(yarp::os::Searchable &params)
 
     m_params.clear();
     m_params.put("counter", yarp::os::Value(0));
-    m_params = m_blackBoardClient.setData(m_targetId.target, m_params);
-    return true;
+    return m_blackBoardClient.setData(m_targetId.target, m_params);
 }
 
 bool BtCpp_DummyServer::terminate()
@@ -66,7 +65,7 @@ NodeStatus BtCpp_DummyServer::tick()
     // Do stuff here ... simply increase the counter and update the blackboard.
     int currValue = m_params.find("counter").asInt32();
     m_params.put("counter", ++currValue);
-    m_params = m_blackBoardClient.setData(m_targetId.target, m_params);
+    m_blackBoardClient.setData(m_targetId.target, m_params);
     return BT::NodeStatus::SUCCESS;
 }
 
