@@ -263,21 +263,19 @@ public:
             }
         }
 
-        std::cout << "\n\n\nInitialization succesfull ... press a key to start.\n" << std::endl;
-        getchar();
+        std::cout << "\n\nInitialization succesfull ...\n" << std::endl;
         return true;
     }
 
     /****************************************************************/
     double getPeriod() override
     {
-        return 1.0;
+        return period;
     }
 
     /****************************************************************/
     bool updateModule() override
     {
-
         // To "execute" a Tree you need to "tick" it.
         // The tick is propagated to the children based on the logic of the tree.
         // In this case, the entire sequence is executed, because all the children
@@ -286,15 +284,10 @@ public:
         int i{0};
         yDebug() << "start running the BT ";
 
-        while(!isStopping())
-        {
-            std::cout << "\n\nIteration num " << i++ << "\n\n";
-            tree.root_node->executeTick();
-            std::this_thread::sleep_for( std::chrono::milliseconds((long int)(period*1000)) );
-        }
+        std::cout << "\nIteration num " << i++ << "\n";
+        tree.root_node->executeTick();
 
-        yDebug() << "Ended with " << toStr(tree.root_node->status());
-        return false;
+        return true;
     }
 
     /****************************************************************/
@@ -306,7 +299,7 @@ public:
     /****************************************************************/
     bool interruptModule() override
     {
-        yTrace();
+        yDebug() << "Ended with " << toStr(tree.root_node->status());
         for( auto& node: tree.nodes )
         {
             yInfo() << "Terminating nodes " << node->name();
