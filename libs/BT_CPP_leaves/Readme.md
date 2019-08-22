@@ -2,7 +2,7 @@
 
 This section is about the integration of YARP TickClient/TickServer with the [BehaviorTree.CPP](https://github.com/BehaviorTree/BehaviorTree.CPP) library.
 The library is used to build the engine capable of reading BT description from XML file 
-(more detail on XML format [here](https://www.behaviortree.dev/xml_format/) )
+(more detail on XML format [here](https://www.behaviortree.dev/xml_format/))
 and properly send tick/halt signals and elaborate the results. The library provides also a log to file mechanism and a real-time
 GUI for monitoring the BT execution called [Groot](https://github.com/BehaviorTree/Groot).
 
@@ -18,7 +18,7 @@ This is an action node embedding a YARP TickClient. It provides inputs parameter
   - `<target>` [optional] : the target parameter for the TickServer, if any.
   - `<resources>` [optional] : the resources list for the TickServer, if any.
   
-  In case a target is provided, the node will reach the shared blackboard to get any parameter associated with that 
+  In case a target is provided, the node will reach the shared BlackBoard to get any parameter associated with that 
   target and will forward them to the TickServer.
   
   So, to 'tick' any YARP module implemented using the `TickServer`, no code needs to be written, simply add a YARP_tick_client
@@ -30,11 +30,11 @@ This is an action node embedding a YARP TickClient. It provides inputs parameter
 
 #### Check condition
 
-This node connects to the shared blackboard and check whether or not a boolean flag is `true` or `false`.
+This node connects to the shared BlackBoard and checks whether or not a boolean flag is true or false.
 The input parameters are:
   - `<serverPort>` [mandatory] : the YARP port of the TickServer it has to connect to (without the final `/tick:o`).
-  - `<target>` [mandatory] : the target parameter the flag is referred to; it is the key in the blackboard map
-  - `<flag>` [mandatory] : the flag to be checked
+  - `<target>` [mandatory] : the target parameter the flag is referred to; it is the key in the BlackBoard map.
+  - `<flag>` [mandatory] : the flag to be checked.
   
   For example to check if the bottle is found, the target is `bottle` and the flag is `found`.
   
@@ -45,9 +45,6 @@ Similar to the check condition, these action nodes will set the flag to true (fo
 #### Where is my Robot?
 
 In case special conditions needs to be checked and a dedicated perception module is available, it is better to create a 
-condition node that directly connects to the perception and get the required answer.
-An example of this architecture is done by the conditions `RobotInRoom` and `RobotAtLocation`. These nodes internally open
-a yarp::dev::navigationClient and connects to the YARP navigation server to ask the current precise location of the robot
-and verify if the required condition is satisfied. This solution is more efficient and is not affected by concurrency problem
-which may arise between nodes an the blackboard.
+condition node that directly connects to the perception and gets the required answer.
+An example of this architecture is done by the conditions `RobotInRoom` and `RobotAtLocation`. These nodes internally open a `yarp::dev::navigationClient` and connects to the YARP navigation server to ask the current precise location of the robot and verify if the required condition is satisfied. This solution is more efficient and is not affected by concurrency problem which may arise between nodes and the BlackBoard.
 
