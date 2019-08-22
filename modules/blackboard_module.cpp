@@ -106,19 +106,18 @@ public:
         return ret;
     }
 
-    void clearData() override
+    // erase a single entry
+    void clearData(const std::string &target)  override
+    {
+        m_storage.erase (m_storage.find(target));
+    }
+
+    // erase all the memory
+    void clearAll() override
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_storage.clear();
     }
-
-    void initializeData() override
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_storage.clear();
-        initializeValues();
-    }
-
 
     bool setData(const std::string& target, const yarp::os::Property& datum) override
     {

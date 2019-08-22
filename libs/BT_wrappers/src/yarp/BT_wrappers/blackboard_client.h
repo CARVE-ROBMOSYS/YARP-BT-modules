@@ -51,8 +51,51 @@ public:
     bool connectToBlackBoard(const std::string serverPort="/blackboard");
 
     //Thrift services inherited from BTCmd
+    /**
+     * @brief Retrieve the Property associated to a key target
+     * @param target name of the target to be retrieved
+     * @return set of parameters associated
+     *
+     * yarp::os::Property getData(const std::string& target);
+     */
     using BlackBoardWrapper::getData;
+
+    /**
+     * @brief Set addictional parameters to a key target
+     * @param target name of the target to add parameters
+     * @param datum set of parameters to be set.
+     *
+     * NOTE: the parameters will be merged on server side with the ones
+     * already existings.
+     *
+     * bool setData(const std::string& target, const yarp::os::Property& datum);
+     */
     using BlackBoardWrapper::setData;
+
+    /**
+     * @brief Clear all the content of the remote blackboard
+     *
+     * void clearAll();
+     */
+    using BlackBoardWrapper::clearAll;
+
+    /**
+     * @brief Clear all the data associated to a specified target
+     * @param target name of the target to be cleared
+     *
+     * void clearData(const std::string& target);
+     */
+
+    using BlackBoardWrapper::clearData;
+
+    /**
+     * @brief Provide the list of all targets currently known to the blackboard
+     * @return vector of targets
+     *
+     * std::vector<std::string> listTarget();
+     */
+    using BlackBoardWrapper::listTarget;
+
     using BlackBoardWrapper::help;
 
 private:

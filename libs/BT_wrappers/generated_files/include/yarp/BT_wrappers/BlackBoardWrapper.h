@@ -32,11 +32,11 @@ public:
 
     virtual bool setData(const std::string& target, const yarp::os::Property& datum);
 
+    virtual void clearData(const std::string& target);
+
+    virtual void clearAll();
+
     virtual std::vector<std::string> listTarget();
-
-    virtual void clearData();
-
-    virtual void initializeData();
 
     // help method
     virtual std::vector<std::string> help(const std::string& functionName = "--all");

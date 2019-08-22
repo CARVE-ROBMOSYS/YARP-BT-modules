@@ -120,6 +120,80 @@ bool BlackBoardWrapper_setData_helper::read(yarp::os::ConnectionReader& connecti
     return true;
 }
 
+class BlackBoardWrapper_clearData_helper :
+        public yarp::os::Portable
+{
+public:
+    explicit BlackBoardWrapper_clearData_helper(const std::string& target);
+    bool write(yarp::os::ConnectionWriter& connection) const override;
+    bool read(yarp::os::ConnectionReader& connection) override;
+
+    std::string m_target;
+};
+
+BlackBoardWrapper_clearData_helper::BlackBoardWrapper_clearData_helper(const std::string& target) :
+        m_target{target}
+{
+}
+
+bool BlackBoardWrapper_clearData_helper::write(yarp::os::ConnectionWriter& connection) const
+{
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(2)) {
+        return false;
+    }
+    if (!writer.writeTag("clearData", 1, 1)) {
+        return false;
+    }
+    if (!writer.writeString(m_target)) {
+        return false;
+    }
+    return true;
+}
+
+bool BlackBoardWrapper_clearData_helper::read(yarp::os::ConnectionReader& connection)
+{
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) {
+        return false;
+    }
+    return true;
+}
+
+class BlackBoardWrapper_clearAll_helper :
+        public yarp::os::Portable
+{
+public:
+    explicit BlackBoardWrapper_clearAll_helper();
+    bool write(yarp::os::ConnectionWriter& connection) const override;
+    bool read(yarp::os::ConnectionReader& connection) override;
+};
+
+BlackBoardWrapper_clearAll_helper::BlackBoardWrapper_clearAll_helper()
+{
+}
+
+bool BlackBoardWrapper_clearAll_helper::write(yarp::os::ConnectionWriter& connection) const
+{
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(1)) {
+        return false;
+    }
+    if (!writer.writeTag("clearAll", 1, 1)) {
+        return false;
+    }
+    return true;
+}
+
+bool BlackBoardWrapper_clearAll_helper::read(yarp::os::ConnectionReader& connection)
+{
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) {
+        return false;
+    }
+    return true;
+}
+
 class BlackBoardWrapper_listTarget_helper :
         public yarp::os::Portable
 {
@@ -170,74 +244,6 @@ bool BlackBoardWrapper_listTarget_helper::read(yarp::os::ConnectionReader& conne
     return true;
 }
 
-class BlackBoardWrapper_clearData_helper :
-        public yarp::os::Portable
-{
-public:
-    explicit BlackBoardWrapper_clearData_helper();
-    bool write(yarp::os::ConnectionWriter& connection) const override;
-    bool read(yarp::os::ConnectionReader& connection) override;
-};
-
-BlackBoardWrapper_clearData_helper::BlackBoardWrapper_clearData_helper()
-{
-}
-
-bool BlackBoardWrapper_clearData_helper::write(yarp::os::ConnectionWriter& connection) const
-{
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) {
-        return false;
-    }
-    if (!writer.writeTag("clearData", 1, 1)) {
-        return false;
-    }
-    return true;
-}
-
-bool BlackBoardWrapper_clearData_helper::read(yarp::os::ConnectionReader& connection)
-{
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) {
-        return false;
-    }
-    return true;
-}
-
-class BlackBoardWrapper_initializeData_helper :
-        public yarp::os::Portable
-{
-public:
-    explicit BlackBoardWrapper_initializeData_helper();
-    bool write(yarp::os::ConnectionWriter& connection) const override;
-    bool read(yarp::os::ConnectionReader& connection) override;
-};
-
-BlackBoardWrapper_initializeData_helper::BlackBoardWrapper_initializeData_helper()
-{
-}
-
-bool BlackBoardWrapper_initializeData_helper::write(yarp::os::ConnectionWriter& connection) const
-{
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) {
-        return false;
-    }
-    if (!writer.writeTag("initializeData", 1, 1)) {
-        return false;
-    }
-    return true;
-}
-
-bool BlackBoardWrapper_initializeData_helper::read(yarp::os::ConnectionReader& connection)
-{
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) {
-        return false;
-    }
-    return true;
-}
-
 // Constructor
 BlackBoardWrapper::BlackBoardWrapper()
 {
@@ -264,6 +270,24 @@ bool BlackBoardWrapper::setData(const std::string& target, const yarp::os::Prope
     return ok ? BlackBoardWrapper_setData_helper::s_return_helper : bool{};
 }
 
+void BlackBoardWrapper::clearData(const std::string& target)
+{
+    BlackBoardWrapper_clearData_helper helper{target};
+    if (!yarp().canWrite()) {
+        yError("Missing server method '%s'?", "void BlackBoardWrapper::clearData(const std::string& target)");
+    }
+    yarp().write(helper, helper);
+}
+
+void BlackBoardWrapper::clearAll()
+{
+    BlackBoardWrapper_clearAll_helper helper{};
+    if (!yarp().canWrite()) {
+        yError("Missing server method '%s'?", "void BlackBoardWrapper::clearAll()");
+    }
+    yarp().write(helper, helper);
+}
+
 std::vector<std::string> BlackBoardWrapper::listTarget()
 {
     BlackBoardWrapper_listTarget_helper helper{};
@@ -272,24 +296,6 @@ std::vector<std::string> BlackBoardWrapper::listTarget()
     }
     bool ok = yarp().write(helper, helper);
     return ok ? BlackBoardWrapper_listTarget_helper::s_return_helper : std::vector<std::string>{};
-}
-
-void BlackBoardWrapper::clearData()
-{
-    BlackBoardWrapper_clearData_helper helper{};
-    if (!yarp().canWrite()) {
-        yError("Missing server method '%s'?", "void BlackBoardWrapper::clearData()");
-    }
-    yarp().write(helper, helper);
-}
-
-void BlackBoardWrapper::initializeData()
-{
-    BlackBoardWrapper_initializeData_helper helper{};
-    if (!yarp().canWrite()) {
-        yError("Missing server method '%s'?", "void BlackBoardWrapper::initializeData()");
-    }
-    yarp().write(helper, helper);
 }
 
 // help method
@@ -301,9 +307,9 @@ std::vector<std::string> BlackBoardWrapper::help(const std::string& functionName
         helpString.emplace_back("*** Available commands:");
         helpString.emplace_back("getData");
         helpString.emplace_back("setData");
-        helpString.emplace_back("listTarget");
         helpString.emplace_back("clearData");
-        helpString.emplace_back("initializeData");
+        helpString.emplace_back("clearAll");
+        helpString.emplace_back("listTarget");
         helpString.emplace_back("help");
     } else {
         if (functionName == "getData") {
@@ -312,14 +318,14 @@ std::vector<std::string> BlackBoardWrapper::help(const std::string& functionName
         if (functionName == "setData") {
             helpString.emplace_back("bool setData(const std::string& target, const yarp::os::Property& datum) ");
         }
+        if (functionName == "clearData") {
+            helpString.emplace_back("void clearData(const std::string& target) ");
+        }
+        if (functionName == "clearAll") {
+            helpString.emplace_back("void clearAll() ");
+        }
         if (functionName == "listTarget") {
             helpString.emplace_back("std::vector<std::string> listTarget() ");
-        }
-        if (functionName == "clearData") {
-            helpString.emplace_back("void clearData() ");
-        }
-        if (functionName == "initializeData") {
-            helpString.emplace_back("void initializeData() ");
         }
         if (functionName == "help") {
             helpString.emplace_back("std::vector<std::string> help(const std::string& functionName = \"--all\")");
@@ -393,6 +399,33 @@ bool BlackBoardWrapper::read(yarp::os::ConnectionReader& connection)
             reader.accept();
             return true;
         }
+        if (tag == "clearData") {
+            std::string target;
+            if (!reader.readString(target)) {
+                reader.fail();
+                return false;
+            }
+            clearData(target);
+            yarp::os::idl::WireWriter writer(reader);
+            if (!writer.isNull()) {
+                if (!writer.writeListHeader(0)) {
+                    return false;
+                }
+            }
+            reader.accept();
+            return true;
+        }
+        if (tag == "clearAll") {
+            clearAll();
+            yarp::os::idl::WireWriter writer(reader);
+            if (!writer.isNull()) {
+                if (!writer.writeListHeader(0)) {
+                    return false;
+                }
+            }
+            reader.accept();
+            return true;
+        }
         if (tag == "listTarget") {
             BlackBoardWrapper_listTarget_helper::s_return_helper = listTarget();
             yarp::os::idl::WireWriter writer(reader);
@@ -409,28 +442,6 @@ bool BlackBoardWrapper::read(yarp::os::ConnectionReader& connection)
                     }
                 }
                 if (!writer.writeListEnd()) {
-                    return false;
-                }
-            }
-            reader.accept();
-            return true;
-        }
-        if (tag == "clearData") {
-            clearData();
-            yarp::os::idl::WireWriter writer(reader);
-            if (!writer.isNull()) {
-                if (!writer.writeListHeader(0)) {
-                    return false;
-                }
-            }
-            reader.accept();
-            return true;
-        }
-        if (tag == "initializeData") {
-            initializeData();
-            yarp::os::idl::WireWriter writer(reader);
-            if (!writer.isNull()) {
-                if (!writer.writeListHeader(0)) {
                     return false;
                 }
             }
