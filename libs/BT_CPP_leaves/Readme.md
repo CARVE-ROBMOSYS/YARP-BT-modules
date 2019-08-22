@@ -28,8 +28,6 @@ This is an action node embedding a YARP TickClient. It provides inputs parameter
   <Action ID="YARP_tick_client" name="Compute Inv Pose"  serverPort="/ComputeInvPose" target="InvPose"/>
 ```
 
-The general idea is shown in the picture ![](BT_CPP_integration.png)
-
 #### Check condition
 
 This node connects to the shared blackboard and check whether or not a boolean flag is `true` or `false`.

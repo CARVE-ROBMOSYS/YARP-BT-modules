@@ -1,6 +1,6 @@
 ## How to use the YARP Tick Wrappers
 
-![img](basic_BT_wrappers.png)
+![](/doc/basic_BT_wrappers.png)
 
 #### Client side
 When the BT_engine is used, there is usually no need to create new clients. 
@@ -116,10 +116,43 @@ all the other process running and the Behavior Tree engine.
 When nodes needs to share information between them or a node implementation requires more parameter to correctly perform
 its task, these information can be stored in and retrieved from the blackboard.
 
-The memory is accessible as a dictionary <key, value> where the key is a `std::string` and the value is a `yarp::os::Property`. The `Property` is YARP-based dictionary-like container, in such a way the maximum flexibility can be achieved in storing custom data.
+The memory is accessible as a dictionary `<key, value>` where the key is a `std::string` and the value is a `yarp::os::Property`. The `Property` is YARP-based dictionary-like container, in such a way the maximum flexibility can be achieved in storing custom data.
 In conjunction with the YARP BT wrappers, the `key` of the blackboard is meant to be the `Action_ID target` described before.
 
 This allows a TickClient/Server to get the parameters from the blackboard or to write updated information using information already available and well known to the user.
+
+In order to communicate with the blackboard, a `BlackBoardClient` has to instantiate and configured, like shown:
+```
+   m_blackboardClient.configureBlackBoardClient("", getName());
+   m_blackboardClient.connectToBlackBoard(remoteBB_name);
+```
+
+Then data can be get/set by using the corresponding functions:
+```
+    Property datum;
+    datum.put("Grasped", Value(true));
+    m_blackboardClient.setData("myTarget", datum);
+
+    Property values = m_blackboardClient.getData("myTarget");
+```
+
+**NOTE:** When setting data to the BlackBoard, the new information will be merged with existing ones, adding new field if not present. This means there is no need to get the data, change it and set it back.
+Image there are two nodes that manipulates data relative to the same target, like `FindObject` and `GraspObject` modules
+
+```
+    Property firstField;
+    firstField.put("Found", Value(true));
+    m_blackboardClient.setData("Bottle", datum);
+```
+The blackboard will now have an entry `target` Bottle with the field `Found` set to `true`.
+
+```
+    Property datum;
+    datum.put("Grasped", Value(true));
+    m_blackboardClient.setData("Bottle", datum);
+```
+After this new `setData` the `target` Bottle will *also* contain the addictional field `Grasped` set to `true`.
+
 
 
 
