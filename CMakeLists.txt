@@ -31,23 +31,33 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 #########################################################
-# FIND YCM
+# Find YCM
 #########################################################
 find_package(YCM REQUIRED)
 
 #########################################################
-# FIND YARP
+# Find YARP
 #########################################################
 find_package(YARP REQUIRED COMPONENTS OS dev math idl_tools)
 
 
 #########################################################
-# FIND behaviour tree library
+# Find behaviour tree library
 #########################################################
 find_package(BehaviorTree REQUIRED)
 if(NOT BehaviorTree_FOUND)
     message(WARNING "BehaviorTree lib not found. Modules for BT engine will not be compiled.")
 endif()
+
+#########################################################
+# Find rFSM library for monitors
+#########################################################
+find_package(rFSM QUIET)
+if(NOT rFSM_FOUND)
+    message(WARNING "rFSM lib not found. Monitor will not be compiled.")
+endif()
+
+
 
 #########################################################
 # GENERATING FILES FOR BEHAVIOR TREE'S THRIFT COMMANDS
@@ -66,6 +76,10 @@ add_subdirectory(examples)
 #####################################################
 add_subdirectory(BT_engine)
 add_subdirectory(modules)
+
+if(rFSM_FOUND)
+    add_subdirectory(monitors)
+endif()
 
 
 include(InstallBasicPackageFiles)

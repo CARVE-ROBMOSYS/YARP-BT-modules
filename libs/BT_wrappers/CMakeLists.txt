@@ -8,6 +8,7 @@ message("\n** Generating idl for BT_module ** ")
 
 yarp_idl_to_dir(INPUT_FILES     "${CMAKE_CURRENT_SOURCE_DIR}/thrift/BT_wrappers.thrift"
                                 "${CMAKE_CURRENT_SOURCE_DIR}/thrift/BlackBoard.thrift"
+                                "${CMAKE_CURRENT_SOURCE_DIR}/thrift/BT_monitoring.thrift"
                 OUTPUT_DIR      "${CMAKE_CURRENT_SOURCE_DIR}/generated_files"
                 SOURCES_VAR      BT_WRAP_SOURCES
                 HEADERS_VAR      BT_WRAP_HEADERS

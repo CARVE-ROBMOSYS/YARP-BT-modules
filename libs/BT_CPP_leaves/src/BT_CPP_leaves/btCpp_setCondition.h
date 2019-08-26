@@ -74,18 +74,6 @@ public:
 private:
 
     /**
-     * @brief configure     Open the yarp port to send tick requests.
-     * @param portPrefix    Prefix for port name opened by the client. Must start with "/" character.
-     * @param clientName    string identifying this client instance. Used primarly for monitoring.
-     *                      Port opened by client will be <portPrefix> + "/" + <clientName> + "/tick:o"
-     *                      <clientName> should not contain "/" character.
-     * @param monitor       True activate monitoring messages, False monitoring messages will be disabled.
-     *                      Portname for monitoring will be <portPrefix> + "/" + <clientName> + "/monitor:o"
-     * @return true if configuration was successful, false otherwise
-     */
-    bool configure_BtSetFlag(std::string portPrefix, std::string clientName, bool monitor=false);
-
-    /**
      * @brief connect       Connect this tick client to the remote tick server
      * @param serverPort    name of the remote port to connect to. A 'tick:i' suffix
      *                      will be appended to <serverPort> param.

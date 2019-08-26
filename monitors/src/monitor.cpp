@@ -7,7 +7,7 @@
 
 using namespace std;
 using namespace yarp::os;
-
+using namespace yarp::BT_wrappers;
 
 MonitorCallback::MonitorCallback(rfsm::StateMachine *sm) :
             sm(sm),
@@ -87,7 +87,7 @@ bool Monitor::respond(const Bottle &command, Bottle &reply)
 bool Monitor::read(ConnectionReader& connection)
 {
     // Process events sent using the proper thrift message
-     BTMonitorMsg monitorMsg;
+     MonitorMsg monitorMsg;
      if(!monitorMsg.read(connection))
      {
          yError() << "Error reading the message";

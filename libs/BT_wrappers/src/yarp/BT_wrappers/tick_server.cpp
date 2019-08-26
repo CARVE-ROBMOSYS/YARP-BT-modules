@@ -15,9 +15,13 @@
 
 #include <thread>
 #include <iostream>
-#include <yarp/os/LogStream.h>
 #include <future>
 
+#include <yarp/os/LogStream.h>
+#include <yarp/os/PortablePair.h>
+#include <yarp/BT_wrappers/MonitorMsg.h>
+
+using namespace yarp::os;
 using namespace yarp::BT_wrappers;
 
 struct CompareActionID
@@ -86,7 +90,15 @@ bool TickServer::RequestHandler::request_terminate()
 
 ReturnStatus TickServer::RequestHandler::request_tick(const ActionID& target, const yarp::os::Property& params)
 {
-    // Place here a message for monitoring?
+    // Place here a message for monitoring: we received a tick msg
+    {   // additional scope, to cleanup the variables afterward
+        yarp::os::PortablePair<yarp::BT_wrappers::MonitorMsg, Bottle> monitor;
+        MonitorMsg &msg = monitor.head;
+        msg = monitor.head;
+        msg.skill     = _owner->_serverName;
+        msg.event     = "e_req";
+        _owner->_toMonitor_port.write(monitor);
+    }
 
     // Get ActionData corresponding to requested ActionID;
     // if ActionID is new, create the entry in the map
@@ -175,8 +187,15 @@ ReturnStatus TickServer::RequestHandler::request_tick(const ActionID& target, co
         }
     }
 
-    // Place here a message for monitoring?
-
+    // send message to monitor: we are done with it
+    {   // additional scope, to cleanup the variables afterward
+        yarp::os::PortablePair<yarp::BT_wrappers::MonitorMsg, Bottle> monitor;
+        MonitorMsg &msg = monitor.head;
+        msg = monitor.head;
+        msg.skill     = _owner->_serverName;
+        msg.event     = "e_from_env";
+        _owner->_toMonitor_port.write(monitor);
+    }
     return return_status;
 }
 
@@ -254,6 +273,9 @@ TickServer::~TickServer()
 {
     _requestPort.interrupt();
     _requestPort.close();
+
+    _toMonitor_port.interrupt();
+    _toMonitor_port.close();
 }
 
 bool TickServer::isHaltRequested(const yarp::BT_wrappers::ActionID target)
@@ -277,6 +299,12 @@ bool TickServer::configure_TickServer(std::string portPrefix, std::string server
 
     if (!_requestPort.open(requestPort_name.c_str())) {
         yError() << _serverName << ": Unable to open port " << requestPort_name;
+        return false;
+    }
+
+    if(!_toMonitor_port.open(portPrefix + "/" + serverName +"/monitor:o") )
+    {
+        yError() << _serverName << ": Unable to open monitoring port " << (portPrefix + "/" + serverName +"/monitor:o");
         return false;
     }
 

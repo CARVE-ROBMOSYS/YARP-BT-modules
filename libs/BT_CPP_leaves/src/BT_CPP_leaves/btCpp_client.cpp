@@ -60,7 +60,7 @@ bool BtCppClient::initialize(Searchable &params)
 
     bool ret{true};
     string clientName = this->name() + "/" + std::to_string(UID());
-    ret &= m_tickClient.configure_TickClient("/BT_engine", clientName, false);
+    ret &= m_tickClient.configure_TickClient("/BT_engine", clientName);
     ret &= m_blackBoardClient.configureBlackBoardClient("/BT_engine", clientName);
 
     if(!ret)

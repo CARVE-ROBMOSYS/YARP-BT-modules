@@ -1,13 +1,8 @@
-# BTCmd.thrift
-#
 
-namespace yarp BT_wrappers
+namespace yarp yarp.BT_wrappers
 
-include "BTCmd.thrift"
-
-enum Direction {REQUEST, REPLY}
-
-struct BTMonitorMsg {
-  1: string skill;
-  2: string event;
+struct MonitorMsg {
+  1: string skill
+  2: string target
+  3: string event
 }

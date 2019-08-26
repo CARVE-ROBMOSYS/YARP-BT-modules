@@ -28,10 +28,6 @@ using namespace yarp::BT_wrappers;
 BtCppSetCondition::BtCppSetCondition(const string &name, const BT::NodeConfiguration &config)  : ActionNodeBase(name, config)
 { }
 
-bool BtCppSetCondition::configure_BtSetFlag(std::string portPrefix, std::string clientName, bool monitor)
-{
-    return m_blackBoardClient.configureBlackBoardClient(portPrefix, clientName);
-}
 
 bool BtCppSetCondition::connect(std::string serverName)
 {
@@ -43,7 +39,9 @@ bool BtCppSetCondition::initialize(Searchable &params)
     YARP_UNUSED(params);
 
     bool ret{false};
-    ret  = configure_BtSetFlag("/BT_engine/", this->name() + "/" + std::to_string(UID()), false);
+    string portPrefix = "/BT_engine/";
+    string clientName = this->name() + "/" + std::to_string(UID());
+    ret = m_blackBoardClient.configureBlackBoardClient(portPrefix, clientName);
 
     Optional<std::string> remote = getInput<std::string>("serverPort");
     // if we have a target, fetch the corresponding params from blackboard, if any

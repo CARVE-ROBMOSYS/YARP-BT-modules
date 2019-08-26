@@ -47,14 +47,6 @@ public:
 
     BtCppClient(const std::string& name, const BT::NodeConfiguration& config);
 
-    /**
-     *      TODO: DOCUMENTATION HERE!!
-     * @brief init
-     * @param config
-     * @param params
-     * @return
-     */
-
     bool initialize(yarp::os::Searchable &params) override;
     bool terminate() override;
 
@@ -67,7 +59,6 @@ public:
         return { BT::InputPort("target",    "Name of the target this action is referring to, if any. "
                                             "In case addictional data are required, they will be fetched from blackboard using <target> as key."),
                  BT::InputPort("resources", "List of resources required by this action, if any."),
-//                 TODO: define a proper way to use the resources list.
                  BT::InputPort("serverPort", "YARP Port Name to connect to.")
         };
     }

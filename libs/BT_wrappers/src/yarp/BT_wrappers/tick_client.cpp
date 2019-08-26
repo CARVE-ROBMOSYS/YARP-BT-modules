@@ -17,6 +17,8 @@
 #include <iostream>
 #include <algorithm>
 #include <yarp/os/LogStream.h>
+#include <yarp/os/PortablePair.h>
+#include <yarp/BT_wrappers/MonitorMsg.h>
 
 using namespace std;
 using namespace yarp::os;
@@ -30,11 +32,10 @@ TickClient::TickClient() : BT_request()
 TickClient::~TickClient()
 {
     _requestPort.close();
-    if(_monitorPort_p)
-        _monitorPort_p->close();
+    _toMonitor_port.close();
 }
 
-bool TickClient::configure_TickClient(std::string portPrefix, std::string clientName, bool monitor)
+bool TickClient::configure_TickClient(std::string portPrefix, std::string clientName)
 {
     bool ret = true;
     if(clientName == "")
@@ -53,22 +54,14 @@ bool TickClient::configure_TickClient(std::string portPrefix, std::string client
         return false;
     }
 
-    if(monitor)
-    {
-        std::string monitorPort_name = portPrefix + "/" + clientName + "/monitor:o";
-        useMonitor = true;
-        _monitorPort_p = std::make_unique<yarp::os::Port>();
-        ret = _monitorPort_p->open(monitorPort_name);
-    }
+    std::string monitorPort_name = portPrefix + "/" + clientName + "/monitor:o";
+    ret = _toMonitor_port.open(monitorPort_name);
 
     if(!ret)
-    {
         _requestPort.close();
-    }
     else
-    {
         this->yarp().attachAsClient(_requestPort);
-    }
+
     return ret;
 }
 
@@ -79,57 +72,31 @@ bool TickClient::connect(std::string serverName)
     return _requestPort.addOutput(serverName + "/tick:i");
 }
 
-/*
-bool TickClient::propagateCmd(TickCommand cmd, const std::string &params)
-{
-    return propagateToMonitor(cmd, Direction::REQUEST, params);
-}
-
-bool TickClient::propagateReply(TickCommand cmd, ReturnStatus reply)
-{
-    return propagateToMonitor(cmd, Direction::REPLY, "", reply);
-}
-
-bool TickClient::propagateToMonitor(TickCommand cmdType, Direction dir, const string &params, ReturnStatus reply)
-{
-    if(useMonitor)
-    {
-        BTMonitorMsg msg;
-
-        msg.skill    = module_name_;
-        msg.event = "unknown";
-
-        if((cmdType == BT_TICK) && (Direction::REQUEST == dir))
-            msg.event = "e_from_bt"; 
-        if((cmdType == BT_TICK) && (Direction::REPLY == dir))
-            msg.event = "e_to_bt";
-
-        if(cmdType == BT_STATUS)
-            msg.event = "e_get_status";
-
-        if((cmdType == BT_HALT) && (Direction::REQUEST == dir))
-            msg.event = "halt_from_bt";
-        if((cmdType == BT_HALT) && (Direction::REPLY == dir))
-            msg.event = "halted_to_bt";
-
-        toMonitor->write(msg);
-    }
-}
-*/
 ReturnStatus TickClient::request_tick(const yarp::BT_wrappers::ActionID &target, const yarp::os::Property &params)
 {
     // Propagate message to the monitor
-//    yInfo() << " propagate command";
-//    propagateCmd(BT_TICK, params);
+    {   // additional scope, to cleanup the variables afterward
+        yarp::os::PortablePair<yarp::BT_wrappers::MonitorMsg, Bottle> monitor;
+        MonitorMsg &msg = monitor.head;
+        msg = monitor.head;
+        msg.skill     = _serverName;
+        msg.event     = "e_from_bt";
+        _toMonitor_port.write(monitor);
+    }
 
     yInfo() << "\tCalling tick on target <" + target.target + "> with param <" + params.toString() + "> to remote server <" + _serverName + ">";
     // Send the actual message to the server
     status_ = BT_request::request_tick(target, params);
 
-    ReturnStatusVocab a;
-    yDebug() << "\treply is " << a.toString(status_);
-    // Propagate reply to the monitor
-//    propagateReply(BT_TICK, status_);
+    // Propagate message to the monitor
+    {   // additional scope, to cleanup the variables afterward
+        yarp::os::PortablePair<yarp::BT_wrappers::MonitorMsg, Bottle> monitor;
+        MonitorMsg &msg = monitor.head;
+        msg = monitor.head;
+        msg.skill     = _serverName;
+        msg.event     = "e_to_bt";
+        _toMonitor_port.write(monitor);
+    }
 
     return status_;
 }

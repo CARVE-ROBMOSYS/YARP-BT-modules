@@ -20,11 +20,21 @@ namespace bt_cpp_modules {
 
 class iBT_CPP_modules {
   public:
+    /**
+     * @brief request_initialize  Hook for an initialization callback. The client can ask the
+     *                            action server to perform an initialization step.
+     * @return              true if initialization was successful, false otherwise
+     */
     virtual bool initialize(yarp::os::Searchable &params) = 0;
+
+    /**
+     * @brief request_terminate  The client notifies the server to close, in order to perform a graceful shutdown.
+     * @return              true if the call was successful, false otherwise
+     */
     virtual bool terminate() = 0;
 };
 
-// funzione di conversione tra enum yarp ed enum faconti
+// Enum conversion function
 static BT::NodeStatus toBT_cpp(yarp::BT_wrappers::ReturnStatus status)
 {
     switch(status)

@@ -37,7 +37,7 @@ bool BtCppCheckCondition::initialize(Searchable &params)
     m_portPrefix = "/BT_engine/" + std::to_string(UID());
     m_clientName = this->name();
 
-    if(!m_tickClient.configure_TickClient(m_portPrefix, m_clientName, false) )
+    if(!m_tickClient.configure_TickClient(m_portPrefix, m_clientName) )
         return false;
 
     // Get parameters from XML
@@ -94,7 +94,7 @@ bool BtCppCheckCondition::initialize(Searchable &params)
 
 bool BtCppCheckCondition::terminate()
 {
-    // TODO: We shall disconnect and close ports here.
+    // nothing to do here
     return true;
 }
 

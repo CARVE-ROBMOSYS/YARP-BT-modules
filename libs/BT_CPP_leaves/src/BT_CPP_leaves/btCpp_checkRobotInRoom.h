@@ -70,7 +70,6 @@ private:
     yarp::dev::Map2DLocation       pos,curr_goal;
     yarp::dev::PolyDriver          ddNavClient;
 
-    //Gets the current navigation status
     yarp::dev::NavigationStatusEnum status;
     double              linearTolerance{0.2}, angularTolerance{10};
 };

@@ -38,7 +38,6 @@ public:
     bool terminate() override;
 
     BT::NodeStatus tick() override;
-//    void halt() override;
 
     // It is mandatory to define this static method, from behavior tree CPP library
     static BT::PortsList providedPorts()

@@ -78,7 +78,11 @@ bool BtCppCheckRootInRoom::initialize(Searchable &params)
 
 bool BtCppCheckRootInRoom::terminate()
 {
-    // TODO: We shall disconnect and close ports here.
+    goTo_port.interrupt();
+    pathPlanner_port.interrupt();
+    goTo_port.close();
+    pathPlanner_port.close();
+    ddNavClient.close();
     return true;
 }
 

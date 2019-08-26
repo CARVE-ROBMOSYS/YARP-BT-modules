@@ -2,6 +2,7 @@
 #define MONITOR_H
 
 #include <memory>
+#include <rfsm.h>
 
 #include <yarp/os/Port.h>
 #include <yarp/os/Timer.h>
@@ -11,8 +12,7 @@
 #include <yarp/os/RFModule.h>
 #include <yarp/os/PortablePair.h>
 
-#include <rfsm.h>
-#include <BTMonitorMsg.h>
+#include <yarp/BT_wrappers/MonitorMsg.h>
 
 class MonitorCallback : public rfsm::StateCallback
 {

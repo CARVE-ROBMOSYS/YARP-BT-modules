@@ -38,29 +38,30 @@ public:
      * @param serverName    string identifying this server instance. Used primarly for monitoring.
      *                      Port opened by server will be <portPrefix> + "/" + <serverName> + "/tick:i"
      *                      <serverName> should not contain "/" character.
-     * @param threaded      the execute_tick function will be called in a separated thread.
-     *                      Use this option only if you know the tick function contains blocking calls.
+     * @param threaded      If true the execute_tick function will be called in a separated thread.
+     *                      Use this option only if you know the tick function contains blocking calls
+     *                      or its execution time is grather then behaviour tree period.
      * @return              true if configuration was successful, false otherwise
      */
     //
     bool configure_TickServer(std::string portPrefix, std::string serverName, bool threaded=false);
 
     /**
-     * @brief request_tick  Implement this method with user code to be run when the action receives the
-     *                      Tick from Behaviour Tree.
-     *                      The `request_tick` function must take a finite amounth of time before returning,
-     *                      do not use long blocking calls.
-
+     * @brief request_tick  Implement this method with user code. It'll run when the server receives the
+     *                      Tick message from Behaviour Tree.
+     *                      The `request_tick` function must take a finite amounth of time before returning
+     *                      (smaller then Behaviour Tree's period),and do not use blocking calls.
+     *
      *                      In case of asynchronous action, i.e. the `request_tick` function takes some
-     *                      to be executed and may contain blocking calls, then configure the server with
+     *                      to be executed or contains blocking calls, then configure the server with
      *                      <threaded> parameter set to True.
-     *                      That `request_tick` function will be executed in a separeted thread, and Tick
-     *                      replies will be automatically sent back to the Behavour Tree engine without
-     *                      interrupting the routine.
+     *                      In this case the `request_tick` function will be executed in a separeted thread,
+     *                      and Tick replies will be automatically sent back to the Behavour Tree engine
+     *                      without interrupting the routine.
      *
      *                      On the receiving side, the server internally implements a bit
-     *                      of logic to actually execute the tick only when the status is either idle
-     *                      or halted, otherwise it will immediately return running.
+     *                      of logic to actually execute the tick only when the thread is not yet running,
+     *                      otherwise the server will automativally return running.
      *
      *                      User implementation of `request_tick` therefore shall return only BT_SUCCESS,
      *                      BT_FAILURE or BT_ERROR and user can safely assume that this function will called
@@ -111,6 +112,7 @@ private:
     bool            _thread_finished{true};
 
     yarp::os::Port  _requestPort;
+    yarp::os::Port  _toMonitor_port;
 
     class RequestHandler;
     std::unique_ptr<RequestHandler> _requestHandler;

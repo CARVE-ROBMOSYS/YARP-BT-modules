@@ -1,17 +1,8 @@
-project(carveMonitors)
-cmake_minimum_required(VERSION 2.8)
 
-find_package(rFSM QUIET)
 set(execName "monitor")
+set(MONITOR_SOURCES   src/monitor.cpp main.cpp)
 
-if(rFSM_FOUND)
-    include_directories(include $ENV{ICUBcontrib_DIR}/include )
-    include_directories(${rFSM_INCLUDE_DIRS} )
+add_executable(${execName} main.cpp ${MONITOR_SOURCES} )
 
-    set(MONITOR_SOURCES   src/monitor.cpp main.cpp)
-
-    add_executable(${execName} main.cpp ${MONITOR_SOURCES} ${YARP_TICK_LIB_SRC})
-    target_link_libraries(${execName} ${YARP_LIBRARIES} rFSMTools::rFSM)
-else()
-    message("\n -- NOTE: rFSM not found, monitor will not be compiled \n")
-endif()
+target_include_directories(${execName} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+target_link_libraries(${execName} YARP::YARP_OS YARP::YARP_init YARP_BT_MODULES::YARP_BT_wrappers rFSMTools::rFSM)
