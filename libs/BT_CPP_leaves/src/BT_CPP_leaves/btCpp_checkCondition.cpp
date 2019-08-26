@@ -85,7 +85,6 @@ bool BtCppCheckCondition::initialize(Searchable &params)
 
     m_targetId.action_ID = (int32_t) UID();
     m_targetId.target = targetName.value();
-    m_targetId.BT_filename = "";
     m_targetId.resources = {};
 
     m_prop.put("flag", flagName.value());

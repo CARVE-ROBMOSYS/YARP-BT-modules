@@ -41,7 +41,6 @@ bool BtCpp_DummyServer::initialize(yarp::os::Searchable &params)
     yDebug() << "Initializing node " << nodeName;
     m_targetId.action_ID = (int32_t) UID();
     m_targetId.target = targetName.value();
-    m_targetId.BT_filename = "";
     m_targetId.resources = {};
 
     m_params.clear();

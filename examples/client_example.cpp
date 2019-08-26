@@ -50,7 +50,6 @@ int main(int argc, char * argv[])
     ActionID action;
     action.action_ID = 1;
     action.target    = "Always_Success";
-    action.BT_filename = "BT_test.xml";
 
     Property params;
     params.put("paramName", "paramValue");

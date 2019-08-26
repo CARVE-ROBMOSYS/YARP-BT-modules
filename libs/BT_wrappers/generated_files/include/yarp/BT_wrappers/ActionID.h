@@ -20,6 +20,19 @@
 namespace yarp {
 namespace BT_wrappers {
 
+/**
+ * The ActionID is a small structure useful to uniquely identify the client requesting
+ * the action, so that the server can safely handle multiple clients at the same time.
+ * Fields are:
+ * target: this identifies the main target the action is referred to.
+ *         For example for a navigation action, the target is the location to reach.
+ * resources: this identifies which resources the action will need to use,
+ *         For example for a grasping action this may indicate to perform the actio
+ *         with left or right arm.
+ * action_ID: an ID number which is required to be unique for each Behaviour Tree for
+ *         each node. In case the same action node is repeated more than once, each
+ *         instance needs to have a different ID.
+ */
 class ActionID :
         public yarp::os::idl::WirePortable
 {
@@ -28,7 +41,6 @@ public:
     std::string target;
     std::string resources;
     std::int32_t action_ID;
-    std::string BT_filename;
 
     // Default constructor
     ActionID();
@@ -36,8 +48,7 @@ public:
     // Constructor with field values
     ActionID(const std::string& target,
              const std::string& resources,
-             const std::int32_t action_ID,
-             const std::string& BT_filename);
+             const std::int32_t action_ID);
 
     // Read structure on a Wire
     bool read(yarp::os::idl::WireReader& reader) override;
@@ -126,12 +137,6 @@ public:
         virtual bool will_set_action_ID();
         virtual bool did_set_action_ID();
 
-        // Editor: BT_filename field
-        void set_BT_filename(const std::string& BT_filename);
-        const std::string& get_BT_filename() const;
-        virtual bool will_set_BT_filename();
-        virtual bool did_set_BT_filename();
-
         // Editor: clean
         void clean();
 
@@ -152,7 +157,6 @@ public:
         bool is_dirty_target;
         bool is_dirty_resources;
         bool is_dirty_action_ID;
-        bool is_dirty_BT_filename;
         int dirty_count;
 
         // Editor: send if possible
@@ -165,7 +169,6 @@ public:
         void mark_dirty_target();
         void mark_dirty_resources();
         void mark_dirty_action_ID();
-        void mark_dirty_BT_filename();
 
         // Editor: dirty_flags
         void dirty_flags(bool flag);
@@ -189,12 +192,6 @@ private:
     bool write_action_ID(const yarp::os::idl::WireWriter& writer) const;
     bool nested_read_action_ID(yarp::os::idl::WireReader& reader);
     bool nested_write_action_ID(const yarp::os::idl::WireWriter& writer) const;
-
-    // read/write BT_filename field
-    bool read_BT_filename(yarp::os::idl::WireReader& reader);
-    bool write_BT_filename(const yarp::os::idl::WireWriter& writer) const;
-    bool nested_read_BT_filename(yarp::os::idl::WireReader& reader);
-    bool nested_write_BT_filename(const yarp::os::idl::WireWriter& writer) const;
 };
 
 } // namespace yarp

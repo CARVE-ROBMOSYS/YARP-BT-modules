@@ -104,7 +104,6 @@ bool BtCppClient::initialize(Searchable &params)
     // get resource list, if any
     Optional<std::string> resources = getInput<std::string>("resources");
     m_targetId.action_ID = (int32_t) UID();
-    m_targetId.BT_filename = "";
     m_targetId.resources = resources.value();
 
     if(!m_tickClient.request_initialize())

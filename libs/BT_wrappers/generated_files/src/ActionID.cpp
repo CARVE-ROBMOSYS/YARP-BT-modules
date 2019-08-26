@@ -21,21 +21,18 @@ ActionID::ActionID() :
         WirePortable(),
         target(""),
         resources(""),
-        action_ID(0),
-        BT_filename("")
+        action_ID(0)
 {
 }
 
 // Constructor with field values
 ActionID::ActionID(const std::string& target,
                    const std::string& resources,
-                   const std::int32_t action_ID,
-                   const std::string& BT_filename) :
+                   const std::int32_t action_ID) :
         WirePortable(),
         target(target),
         resources(resources),
-        action_ID(action_ID),
-        BT_filename(BT_filename)
+        action_ID(action_ID)
 {
 }
 
@@ -51,9 +48,6 @@ bool ActionID::read(yarp::os::idl::WireReader& reader)
     if (!read_action_ID(reader)) {
         return false;
     }
-    if (!read_BT_filename(reader)) {
-        return false;
-    }
     return !reader.isError();
 }
 
@@ -61,7 +55,7 @@ bool ActionID::read(yarp::os::idl::WireReader& reader)
 bool ActionID::read(yarp::os::ConnectionReader& connection)
 {
     yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListHeader(4)) {
+    if (!reader.readListHeader(3)) {
         return false;
     }
     return read(reader);
@@ -79,9 +73,6 @@ bool ActionID::write(const yarp::os::idl::WireWriter& writer) const
     if (!write_action_ID(writer)) {
         return false;
     }
-    if (!write_BT_filename(writer)) {
-        return false;
-    }
     return !writer.isError();
 }
 
@@ -89,7 +80,7 @@ bool ActionID::write(const yarp::os::idl::WireWriter& writer) const
 bool ActionID::write(yarp::os::ConnectionWriter& connection) const
 {
     yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(4)) {
+    if (!writer.writeListHeader(3)) {
         return false;
     }
     return write(writer);
@@ -252,34 +243,6 @@ bool ActionID::Editor::did_set_action_ID()
     return true;
 }
 
-// Editor: BT_filename setter
-void ActionID::Editor::set_BT_filename(const std::string& BT_filename)
-{
-    will_set_BT_filename();
-    obj->BT_filename = BT_filename;
-    mark_dirty_BT_filename();
-    communicate();
-    did_set_BT_filename();
-}
-
-// Editor: BT_filename getter
-const std::string& ActionID::Editor::get_BT_filename() const
-{
-    return obj->BT_filename;
-}
-
-// Editor: BT_filename will_set
-bool ActionID::Editor::will_set_BT_filename()
-{
-    return true;
-}
-
-// Editor: BT_filename did_set
-bool ActionID::Editor::did_set_BT_filename()
-{
-    return true;
-}
-
 // Editor: clean
 void ActionID::Editor::clean()
 {
@@ -353,23 +316,14 @@ bool ActionID::Editor::read(yarp::os::ConnectionReader& connection)
                     return false;
                 }
             }
-            if (field == "BT_filename") {
-                if (!writer.writeListHeader(1)) {
-                    return false;
-                }
-                if (!writer.writeString("std::string BT_filename")) {
-                    return false;
-                }
-            }
         }
-        if (!writer.writeListHeader(5)) {
+        if (!writer.writeListHeader(4)) {
             return false;
         }
         writer.writeString("*** Available fields:");
         writer.writeString("target");
         writer.writeString("resources");
         writer.writeString("action_ID");
-        writer.writeString("BT_filename");
         return true;
     }
     bool nested = true;
@@ -414,12 +368,6 @@ bool ActionID::Editor::read(yarp::os::ConnectionReader& connection)
                 return false;
             }
             did_set_action_ID();
-        } else if (key == "BT_filename") {
-            will_set_BT_filename();
-            if (!obj->nested_read_BT_filename(reader)) {
-                return false;
-            }
-            did_set_BT_filename();
         } else {
             // would be useful to have a fallback here
         }
@@ -489,20 +437,6 @@ bool ActionID::Editor::write(yarp::os::ConnectionWriter& connection) const
             return false;
         }
     }
-    if (is_dirty_BT_filename) {
-        if (!writer.writeListHeader(3)) {
-            return false;
-        }
-        if (!writer.writeString("set")) {
-            return false;
-        }
-        if (!writer.writeString("BT_filename")) {
-            return false;
-        }
-        if (!obj->nested_write_BT_filename(writer)) {
-            return false;
-        }
-    }
     return !writer.isError();
 }
 
@@ -557,17 +491,6 @@ void ActionID::Editor::mark_dirty_action_ID()
     mark_dirty();
 }
 
-// Editor: BT_filename mark_dirty
-void ActionID::Editor::mark_dirty_BT_filename()
-{
-    if (is_dirty_BT_filename) {
-        return;
-    }
-    dirty_count++;
-    is_dirty_BT_filename = true;
-    mark_dirty();
-}
-
 // Editor: dirty_flags
 void ActionID::Editor::dirty_flags(bool flag)
 {
@@ -575,8 +498,7 @@ void ActionID::Editor::dirty_flags(bool flag)
     is_dirty_target = flag;
     is_dirty_resources = flag;
     is_dirty_action_ID = flag;
-    is_dirty_BT_filename = flag;
-    dirty_count = flag ? 4 : 0;
+    dirty_count = flag ? 3 : 0;
 }
 
 // read target field
@@ -688,44 +610,6 @@ bool ActionID::nested_read_action_ID(yarp::os::idl::WireReader& reader)
 bool ActionID::nested_write_action_ID(const yarp::os::idl::WireWriter& writer) const
 {
     if (!writer.writeI32(action_ID)) {
-        return false;
-    }
-    return true;
-}
-
-// read BT_filename field
-bool ActionID::read_BT_filename(yarp::os::idl::WireReader& reader)
-{
-    if (!reader.readString(BT_filename)) {
-        reader.fail();
-        return false;
-    }
-    return true;
-}
-
-// write BT_filename field
-bool ActionID::write_BT_filename(const yarp::os::idl::WireWriter& writer) const
-{
-    if (!writer.writeString(BT_filename)) {
-        return false;
-    }
-    return true;
-}
-
-// read (nested) BT_filename field
-bool ActionID::nested_read_BT_filename(yarp::os::idl::WireReader& reader)
-{
-    if (!reader.readString(BT_filename)) {
-        reader.fail();
-        return false;
-    }
-    return true;
-}
-
-// write (nested) BT_filename field
-bool ActionID::nested_write_BT_filename(const yarp::os::idl::WireWriter& writer) const
-{
-    if (!writer.writeString(BT_filename)) {
         return false;
     }
     return true;

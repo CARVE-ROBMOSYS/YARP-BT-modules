@@ -42,7 +42,7 @@ BT_request_request_status_helper::BT_request_request_status_helper(const ActionI
 bool BT_request_request_status_helper::write(yarp::os::ConnectionWriter& connection) const
 {
     yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(6)) {
+    if (!writer.writeListHeader(5)) {
         return false;
     }
     if (!writer.writeTag("request_status", 1, 2)) {
@@ -97,7 +97,7 @@ BT_request_request_tick_helper::BT_request_request_tick_helper(const ActionID& t
 bool BT_request_request_tick_helper::write(yarp::os::ConnectionWriter& connection) const
 {
     yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(7)) {
+    if (!writer.writeListHeader(6)) {
         return false;
     }
     if (!writer.writeTag("request_tick", 1, 2)) {
@@ -155,7 +155,7 @@ BT_request_request_halt_helper::BT_request_request_halt_helper(const ActionID& t
 bool BT_request_request_halt_helper::write(yarp::os::ConnectionWriter& connection) const
 {
     yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(7)) {
+    if (!writer.writeListHeader(6)) {
         return false;
     }
     if (!writer.writeTag("request_halt", 1, 2)) {
@@ -345,18 +345,45 @@ std::vector<std::string> BT_request::help(const std::string& functionName)
     } else {
         if (functionName == "request_status") {
             helpString.emplace_back("ReturnStatus request_status(const ActionID& target) ");
+            helpString.emplace_back("request_status  Get the status of the action on the server side. ");
+            helpString.emplace_back("target        The target whose state is required ");
+            helpString.emplace_back("                     NOTE: in case the Tick uses a target, then the request_status action MUST use the same target. ");
+            helpString.emplace_back("                     Ex.: For navigation target may be the destination location name. ");
+            helpString.emplace_back("return              The enum indicating the status of the action on the server side. ");
         }
         if (functionName == "request_tick") {
             helpString.emplace_back("ReturnStatus request_tick(const ActionID& target, const yarp::os::Property& params = {  }) ");
+            helpString.emplace_back("request_tick  Send a Tick request to the server, along with its parameters. ");
+            helpString.emplace_back("target        The ActionID is a small structure useful to uniquely identify the client requesting the action, ");
+            helpString.emplace_back("                     so that the server can safely handle multiple clients at the same time. ");
+            helpString.emplace_back("                     Optional in case the action has no targets. ");
+            helpString.emplace_back("params        Any addictional parameter the server may require to perform the action. ");
+            helpString.emplace_back("                     Ex.: For navigation target may be the destination location name; ");
+            helpString.emplace_back("                     the params may contain the max speed. ");
+            helpString.emplace_back("return               The enum indicating the status of the action on the server side. ");
         }
         if (functionName == "request_halt") {
             helpString.emplace_back("ReturnStatus request_halt(const ActionID& target, const yarp::os::Property& params = {  }) ");
+            helpString.emplace_back("request_halt  Send a Halt request to the server, along with its parameters. ");
+            helpString.emplace_back("target        The ActionID is a small structure useful to uniquely identify the client requesting the action, ");
+            helpString.emplace_back("                     so that the server can safely handle multiple clients at the same time. ");
+            helpString.emplace_back("                     Optional in case the action has no targets. ");
+            helpString.emplace_back("                     NOTE: in case the Tick uses a target, then the Halt action MUST use the same target to stop it. ");
+            helpString.emplace_back("params        Any addictional parameter the server may require to perform the action. ");
+            helpString.emplace_back("                     Ex.: For navigation target may be the destination location name; ");
+            helpString.emplace_back("                     the params may contain the max deceleration to apply. ");
+            helpString.emplace_back("return              The enum indicating the status of the action on the server side. ");
         }
         if (functionName == "request_initialize") {
             helpString.emplace_back("bool request_initialize() ");
+            helpString.emplace_back(" request_initialize  Hook for an initialization callback. The client can ask the action server to perform ");
+            helpString.emplace_back("                     an initialization step. ");
+            helpString.emplace_back("return              true if initialization was successful, false otherwise ");
         }
         if (functionName == "request_terminate") {
             helpString.emplace_back("bool request_terminate() ");
+            helpString.emplace_back("request_terminate  The client notifies the server to close, in order to perform a graceful shutdown. ");
+            helpString.emplace_back("return              true if the call was successful, false otherwise ");
         }
         if (functionName == "help") {
             helpString.emplace_back("std::vector<std::string> help(const std::string& functionName = \"--all\")");
