@@ -36,12 +36,13 @@ class BlackBoard :  public BlackBoardWrapper,
 private:
     yarp::os::Port                  m_blackboard_port;  // a port to handle RPC  messages
     std::map<std::string, Property> m_storage;
+    std::map<std::string, Property> m_initialization_values;
     std::mutex                      m_mutex;
 
 public:
     bool request_initialize() override
     {
-        initializeValues();
+        resetData();
         return true;
     }
 
@@ -119,6 +120,12 @@ public:
         m_storage.clear();
     }
 
+    void resetData() override
+    {
+        m_storage.clear();
+        m_storage = m_initialization_values;
+    }
+
     bool setData(const std::string& target, const yarp::os::Property& datum) override
     {
         /* Using fromString(toString) is the only way known to merge two properties together.
@@ -151,20 +158,53 @@ public:
     }
 
     bool configure(yarp::os::ResourceFinder &rf)
-       {
-           // optional, attach a port to the module
-           // so that messages received from the port are redirected
-           // to the respond method
-           m_blackboard_port.open("/blackboard/rpc:s");
+    {
+        m_blackboard_port.open("/blackboard/rpc:s");
 
-           // Attach BlackBoard thrift message parser
-           BlackBoardWrapper::yarp().attachAsServer(m_blackboard_port);
+        // Attach BlackBoard thrift message parser
+        BlackBoardWrapper::yarp().attachAsServer(m_blackboard_port);
 
-           return true;
-       }
+        Bottle p(rf.toString());
+
+        yInfo() << p.toString();
+
+        // Cycle for each group, i.e. names in square brackets -> [group]
+        for(int i=0; i< p.size(); i++)
+        {
+            Bottle group = *(p.get(i).asList());
+            Property prop;
+            std::string mapKey = group.get(0).toString();
+            // Cycle for each line in the group
+            for(int j=0; j<group.size(); j++)
+            {
+                // Rows are supposed to be key/data (where data may contains multiple elements)
+                if(group.get(j).isList())
+                {
+                    Value row = group.get(j);
+                    std::string propKey = row.asList()->get(0).toString();
+                    Bottle data = row.asList()->tail();
+
+                    Value a;
+                    if(data.size() == 1)
+                        a = data.get(0);
+                    else
+                    {
+                        Bottle *abl = a.asList();
+                        for(int k=0; k<data.size(); k++)
+                        abl->add(data.get(k));
+                    }
+                    prop.put(propKey, a);
+                    m_initialization_values[mapKey] = prop;
+                }
+            }
+        }
+        resetData();
+        return true;
+    }
 
     bool interruptModule()
     {
+        m_blackboard_port.interrupt();
         return true;
     }
 
@@ -173,73 +213,7 @@ public:
     {
         m_blackboard_port.close();
         return true;
-    }
-
-    void initializeValues()
-    {
-        Property p;
-        {
-            p.put("known",              Value(true));
-            p.put("type",               Value("room"));
-            p.put("valid",              Value(true));
-            p.put("robotAt",            Value(false));
-            p.put("robotRadius",        Value(0.35f));
-            p.put("obstacle_avoidance", Value(true));
-            Property &loc1 = p.addGroup("location");
-            loc1.put("map_id", "sanquirico");
-            loc1.put("x",      10.00);
-            loc1.put("y",       2.02);
-            loc1.put("theta",   0.00);
-            setData("kitchen", p);
-        }
-
-        {   // Location values will be computed by an external module.
-            // This entry is useful to store the other nav parameters.
-            p.clear();
-            p.put("known",              Value(true));
-            p.put("type",               Value("location"));
-            p.put("valid",              Value(false));
-            p.put("robotAt",            Value(false));
-            p.put("robotRadius",        Value(0.1f));
-            p.put("obstacle_avoidance", Value(false));
-            Property &loc = p.addGroup("location");
-            loc.put("map_id", "sanquirico");
-            loc.put("x",      0.0);
-            loc.put("y",      0.0);
-            loc.put("theta",  0.0);
-            setData("invPose", p);
-        }
-
-        {
-            p.clear();
-            p.put("known",              Value(true));
-            p.put("type",               Value("location"));
-            p.put("valid",              Value(false));
-            p.put("robotAt",            Value(false));
-            p.put("robotRadius",        Value(0.35f));
-            p.put("obstacle_avoidance", Value(true));
-            Property &loc = p.addGroup("location");
-            loc.put("map_id", "sanquirico");
-            loc.put("x",        10.0);
-            loc.put("y",        2.02);
-            loc.put("theta",  -14.56);
-            setData("findBottle", p);
-        }
-
-        {   // Location values will be computed by an external module.
-            // This entry is useful to store the other nav parameters.
-            p.clear();
-            p.put("grasped",            Value(false));
-            setData("bottle", p);
-        }
-
-//        set("homeArms",                 Value("(joint ( "
-//                                              "(left_arm  45 60 10 80 18) "
-//                                              "(right_arm 45 60 10 80 18) "
-//                                              "(torso 0.01) "
-//                                              ") KeepArmsForGrasp)"));
-
-    }
+    }    
 };
 
 int main(int argc, char * argv[])
@@ -257,8 +231,6 @@ int main(int argc, char * argv[])
 
     BlackBoard blackboard;
     blackboard.configure_TickServer("", "blackboard");
-
-    blackboard.initializeValues();
     blackboard.runModule(rf);
     return 0;
 }

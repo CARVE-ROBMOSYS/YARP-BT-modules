@@ -96,6 +96,14 @@ public:
      */
     using BlackBoardWrapper::listTarget;
 
+    /**
+     * @brief Reset all blackboard memory to its initialization values from
+     *        config file
+     *
+     * void resetData();
+     */
+    using BlackBoardWrapper::resetData;
+
     using BlackBoardWrapper::help;
 
 private:

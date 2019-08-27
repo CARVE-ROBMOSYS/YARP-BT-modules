@@ -19,5 +19,6 @@ service BlackBoardWrapper {
     bool setData(1: string target, 2: Data datum)
     void clearData(1: string target)
     void clearAll()
+    void resetData()
     list<string> listTarget()
 }

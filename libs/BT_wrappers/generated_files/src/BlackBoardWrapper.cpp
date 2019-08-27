@@ -194,6 +194,40 @@ bool BlackBoardWrapper_clearAll_helper::read(yarp::os::ConnectionReader& connect
     return true;
 }
 
+class BlackBoardWrapper_resetData_helper :
+        public yarp::os::Portable
+{
+public:
+    explicit BlackBoardWrapper_resetData_helper();
+    bool write(yarp::os::ConnectionWriter& connection) const override;
+    bool read(yarp::os::ConnectionReader& connection) override;
+};
+
+BlackBoardWrapper_resetData_helper::BlackBoardWrapper_resetData_helper()
+{
+}
+
+bool BlackBoardWrapper_resetData_helper::write(yarp::os::ConnectionWriter& connection) const
+{
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(1)) {
+        return false;
+    }
+    if (!writer.writeTag("resetData", 1, 1)) {
+        return false;
+    }
+    return true;
+}
+
+bool BlackBoardWrapper_resetData_helper::read(yarp::os::ConnectionReader& connection)
+{
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) {
+        return false;
+    }
+    return true;
+}
+
 class BlackBoardWrapper_listTarget_helper :
         public yarp::os::Portable
 {
@@ -288,6 +322,15 @@ void BlackBoardWrapper::clearAll()
     yarp().write(helper, helper);
 }
 
+void BlackBoardWrapper::resetData()
+{
+    BlackBoardWrapper_resetData_helper helper{};
+    if (!yarp().canWrite()) {
+        yError("Missing server method '%s'?", "void BlackBoardWrapper::resetData()");
+    }
+    yarp().write(helper, helper);
+}
+
 std::vector<std::string> BlackBoardWrapper::listTarget()
 {
     BlackBoardWrapper_listTarget_helper helper{};
@@ -309,6 +352,7 @@ std::vector<std::string> BlackBoardWrapper::help(const std::string& functionName
         helpString.emplace_back("setData");
         helpString.emplace_back("clearData");
         helpString.emplace_back("clearAll");
+        helpString.emplace_back("resetData");
         helpString.emplace_back("listTarget");
         helpString.emplace_back("help");
     } else {
@@ -323,6 +367,9 @@ std::vector<std::string> BlackBoardWrapper::help(const std::string& functionName
         }
         if (functionName == "clearAll") {
             helpString.emplace_back("void clearAll() ");
+        }
+        if (functionName == "resetData") {
+            helpString.emplace_back("void resetData() ");
         }
         if (functionName == "listTarget") {
             helpString.emplace_back("std::vector<std::string> listTarget() ");
@@ -417,6 +464,17 @@ bool BlackBoardWrapper::read(yarp::os::ConnectionReader& connection)
         }
         if (tag == "clearAll") {
             clearAll();
+            yarp::os::idl::WireWriter writer(reader);
+            if (!writer.isNull()) {
+                if (!writer.writeListHeader(0)) {
+                    return false;
+                }
+            }
+            reader.accept();
+            return true;
+        }
+        if (tag == "resetData") {
+            resetData();
             yarp::os::idl::WireWriter writer(reader);
             if (!writer.isNull()) {
                 if (!writer.writeListHeader(0)) {

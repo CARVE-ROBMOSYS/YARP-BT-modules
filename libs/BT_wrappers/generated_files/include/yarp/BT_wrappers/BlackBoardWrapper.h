@@ -36,6 +36,8 @@ public:
 
     virtual void clearAll();
 
+    virtual void resetData();
+
     virtual std::vector<std::string> listTarget();
 
     // help method
