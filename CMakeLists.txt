@@ -18,6 +18,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+
 ##########################################################
 ## ENABLE C++14 and thread
 ##########################################################
@@ -57,6 +58,13 @@ if(NOT rFSM_FOUND)
     message(WARNING "rFSM lib not found. Monitor will not be compiled.")
 endif()
 
+
+include(AddInstallRPATHSupport)
+message("CMAKE_INSTALL_FULL_BINDIR is ${CMAKE_INSTALL_FULL_BINDIR}")
+add_install_rpath_support(BIN_DIRS "${CMAKE_INSTALL_FULL_BINDIR}"
+                          LIB_DIRS "${CMAKE_INSTALL_FULL_LIBDIR}"
+                          INSTALL_NAME_DIR "${CMAKE_INSTALL_FULL_LIBDIR}"
+                          USE_LINK_PATH)
 
 
 #########################################################
