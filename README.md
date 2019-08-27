@@ -24,7 +24,7 @@ Libraries:
 Executables:
 - Behavior Tree engine using [BehaviorTree.CPP](https://github.com/BehaviorTree/BehaviorTree.CPP) library and compatible with [Groot](https://github.com/BehaviorTree/Groot) GUI.
 - Set of executable nodes handling common funtionalities of the robot, like navigation.
-- Blackboard for sharing data between nodes and other parameters.
+- A YARP Blackboard for sharing data between nodes and other parameters.
 
 ### Installation ###
 
@@ -85,7 +85,7 @@ An example is shown in the picture.
 
 The `target` is the approach used to overcome these limitations: each node in the BT has a target (optional) which has a threefold usage:
   - Allows transparent node re-use as expected from a behavior tree
-  - It is the node *principal parameter*, used as a *key* to retrieve addictional parameters from the shared BlackBoard. For more information about the BlackBoard see [here](libs/BT_wrappers/BlackBoard)
+  - It is the node *principal parameter*, used as a *key* to retrieve addictional parameters from the shared BlackBoard. For more information about the YARP BlackBoard see [here](libs/BT_wrappers/BlackBoard)
   - Allows node implementation (es: navigation stack) to distinguish between different requests. This means that 
   a `halt` request to node GoTo_LivingRoom will not stop the GoTo_Kitchen action from running, even though the server executable receiving both requests is the same one.
 

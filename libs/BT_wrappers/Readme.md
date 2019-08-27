@@ -28,7 +28,7 @@ The tick request has a mandatory parameters, which is the ActionID <action> and 
 ```
 
 The ActionID is a small structure useful to uniquely identify the client requesting the action, so that the server can safely  handle multiple clients at the same time. 
-By using the provided BT_engine, this field is automatically filled. 
+By using the provided BT_engine, this field is automatically filled by the engine with data coming from the BT description file in XML format. 
 
 The fields are:
 ```
@@ -43,7 +43,7 @@ The fields are:
 For example the two leaf nodes "Go to Kitchen" and action "Go To Living Room" may be implemented as a single client 
 in which the target is different; in this case also the `action_ID` number has to be different.
 
-The Property <params> can contain any addictional parameter required by the server to perform the action. The Property is a dictionary type container able to store any data type.
+The yarp::os::Property <params> can contain any addictional parameter required by the server to perform the action. The Property is a dictionary type container able to store any data type.
 
 #### Server side
 
@@ -91,14 +91,14 @@ class MySkillClass : public TickServer_withData<int>
 }
  ```
  
-**NOTE:** The function `request_halt` is blocking and waiting for the corresponding `request_tick` to terminate the execution before returning. This is to ensure that when the `request_halt` returns, the module is really halted; the 
-drawback is that, in case the `request_tick` or `request_halt` takes time to terminate, the execution of the behaviour tree is freezed until they exit.
+**NOTE:** The function `request_halt` is blocking and waiting for the corresponding `request_tick` thread (if any) to terminate the execution before returning. This is to ensure that when the `request_halt` returns, the module is really halted; 
+the drawback is that, in case the `request_tick` or `request_halt` takes time to terminate, the execution of the behaviour tree is freezed until they exit.
 It is important therefore to verify if a halt has been requested and terminate as soon as possible. For example:
 ``` 
 request_tick(...)
 {
 ...
-  while(work_to_do || !isHaltRequested(target))
+  while(work_to_do && !isHaltRequested(target))
   {
     // do my work here
   }
@@ -108,15 +108,13 @@ request_tick(...)
 The function `isHaltRequested(target)` will return true if and only if a halt request has been received for the specified target. If a halt has been requested for a different target, it will return false and the execution will proceed.
 
 
-#### BlackBoard
+#### The YARP BlackBoard
 
-An importante piece of the infrastructure is the shared blackboard. It is a process working as a memory shared between 
-all the other process running and the Behavior Tree engine.
-When nodes needs to share information between them or a node implementation requires more parameters to correctly perform
-its task, these information can be stored in and retrieved from the blackboard.
+An importante piece of the infrastructure is the shared YARP BlackBoard. It is a process working as a memory shared between all the other process running and the Behavior Tree engine.
+When nodes needs to share information between them or a node implementation requires more parameters to correctly perform its task, these information can be stored in and retrieved from the BlackBoard.
 
 The memory is accessible as a dictionary `<key, value>` where the key is a `std::string` and the value is a `yarp::os::Property`. The `Property` is YARP-based dictionary-like container, in such a way the maximum flexibility can be achieved in storing custom data.
-In conjunction with the YARP BT wrappers, the `key` of the BlackBoard is meant to be the `Action_ID target` described before.
+In conjunction with the YARP BT wrappers, the `key` of the YARP BlackBoard is meant to be the `Action_ID target` described before.
 
 This allows a TickClient/Server to get the parameters from the BlackBoard or to write updated information using information already available and well known to the user.
 
@@ -128,8 +126,8 @@ In order to communicate with the BlackBoard, a `BlackBoardClient` has to instant
 
 Then data can be get/set by using the corresponding functions:
 ```
-    Property datum;
-    datum.put("Grasped", Value(true));
+    yarp::os::Property datum;
+    datum.put("Grasped", yarp::os::Value(true));
     m_blackboardClient.setData("myTarget", datum);
 
     Property values = m_blackboardClient.getData("myTarget");
@@ -139,19 +137,16 @@ Then data can be get/set by using the corresponding functions:
 Imagine there are two nodes that manipulates data relative to the same target, like `FindObject` and `GraspObject` modules
 
 ```
-    Property datum;
-    datum.put("Found", Value(true));
-    m_blackboardClient.setData("Bottle", datum);
+    yarp::os::Property datum;
+    datum.put("Found", yarp::os::Value(true));
+    m_blackboardClient.setData("myCup", datum);
 ```
-The BlackBoard will now have an entry `target` Bottle with the field `Found` set to `true`.
+The BlackBoard will now have an entry `target` myCup with the field `Found` set to `true`.
 
 ```
-    Property datum;
-    datum.put("Grasped", Value(true));
-    m_blackboardClient.setData("Bottle", datum);
+    yarp::os::Property datum;
+    datum.put("Grasped", yarp::os::Value(true));
+    m_blackboardClient.setData("myCup", datum);
 ```
-After this new `setData` the `target` Bottle will *also* contain the addictional field `Grasped` set to `true`.
-
-
-
+After this new `setData` the `target` myCup will *also* contain the addictional field `Grasped` set to `true`.
 

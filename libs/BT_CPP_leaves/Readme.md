@@ -18,6 +18,8 @@ This is an action node embedding a YARP TickClient. It provides inputs parameter
   - `<target>` [optional] : the target parameter for the TickServer, if any.
   - `<resources>` [optional] : the resources list for the TickServer, if any.
   
+**NOTE:** The values mentioned here are read from the XML file describing the Behavior Tree via channels called [input ports](https://www.behaviortree.dev/tutorial_02_basic_ports/) and stored in the engine's internal *blackboard*. This has not to be confused with the YARP shared BlackBoard, which instead is an executable accessible by any client via YARP port.
+
   In case a target is provided, the node will reach the shared BlackBoard to get any parameter associated with that 
   target and will forward them to the TickServer.
   
