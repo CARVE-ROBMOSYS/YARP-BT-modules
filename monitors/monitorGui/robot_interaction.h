@@ -9,13 +9,12 @@
  * @authors: Michele Colledanchise <michele.colldanchise@iit.it>
  */
 
-
 #ifndef ROBOTINTERACTION_H
 #define ROBOTINTERACTION_H
-#include <yarp/os/BufferedPort.h>
-#include <vector>
-using namespace yarp::os;
 
+#include <vector>
+#include <yarp/os/BufferedPort.h>
+#include <yarp/BT_wrappers/blackboard_client.h>
 
 class RobotInteraction
 {
@@ -29,8 +28,10 @@ public:
     bool closeDoor();
     bool openDoor();
 private:
-    BufferedPort<Bottle> robot_input_messages_port_;
-    yarp::os::Port blackboard_client_port_, world_interface_client_port_, robot_output_messages_port_;
+    yarp::os::BufferedPort<yarp::os::Bottle> robot_input_messages_port_;
+
+    yarp::os::Port  world_interface_client_port_, robot_output_messages_port_;
+    yarp::BT_wrappers::BlackBoardClient blackboardClient_;
 };
 
 #endif // ROBOTINTERACTION_H

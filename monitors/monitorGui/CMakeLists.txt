@@ -13,9 +13,7 @@ find_package(Qt5 COMPONENTS Widgets)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(UI_SOURCES
-    mainwindow.ui
-)
+set(UI_SOURCES  mainwindow.ui)
 
 
 set(MONTOR_SRC mainwindow.cpp
@@ -27,4 +25,4 @@ set(MONTOR_SRC mainwindow.cpp
 
 add_executable(monitorGui main.cpp ${MONTOR_SRC})
 
-target_link_libraries(monitorGui ${YARP_LIBRARIES} Qt5::Widgets)
+target_link_libraries(monitorGui ${YARP_LIBRARIES} Qt5::Widgets YARP_BT_wrappers)

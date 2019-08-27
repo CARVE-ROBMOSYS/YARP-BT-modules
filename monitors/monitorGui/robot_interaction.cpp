@@ -18,13 +18,10 @@
 using namespace yarp::os;
 
 RobotInteraction::RobotInteraction()
-{
-
-}
+{ }
 
 bool RobotInteraction::configure()
 {
-
     // initializes yarp network
     yarp::os::Network yarp;
     if (!yarp::os::Network::checkNetwork(5.0))
@@ -55,40 +52,25 @@ bool RobotInteraction::configure()
         return false;
     }
 
-
-    // opens the YARP RPC port used to reset the blackboard
-
-    blackboard_client_port_ = Port();
-    std::string blackboard_client_port_name = "/GUI/blackboard/rpc:o";
-    std::string blackboard_server_port_name = "/blackboard/rpc:i";
-
-
-    blackboard_client_port_.open(blackboard_client_port_name);
-    bool is_connected = yarp.connect(blackboard_client_port_name, blackboard_server_port_name);
+    // opens the YARP blackboard client
+    blackboardClient_.configureBlackBoardClient("/blackboard", "GUI");
+    bool is_connected = blackboardClient_.connectToBlackBoard();
 
     if (!is_connected)
     {
-        yError() << "[GUI] cannot connect to " << blackboard_server_port_name;
+        yError() << "[GUI] cannot connect to the blackboard.";
         return false;
     }
 
-    // opens the YARP RPC port used to close the door
-
-
-    world_interface_client_port_ = Port();
+    // opens the YARP RPC port used to close the door in Gazebo simulator
     std::string world_client_port_name = "/GUI/world/rpc:o";
     std::string world_server_port_name = "/world_input_port";
-
-
     world_interface_client_port_.open(world_client_port_name);
     is_connected = yarp.connect(world_client_port_name, world_server_port_name);
-
     if (!is_connected)
     {
-        yError() << "[GUI] cannot connect to " << world_server_port_name;
-        return false;
+        yWarning() << "[GUI] cannot connect to " << world_server_port_name;
     }
-
     return true;
 }
 
@@ -96,8 +78,6 @@ bool RobotInteraction::configure()
 bool RobotInteraction::sendMessage(std::vector<std::string> message_list)
 {
     Bottle message_btl;
-
-
     for (int i = 0; i< message_list.size(); i++)
     {
         message_btl.addString(message_list.at(i));
@@ -118,23 +98,15 @@ bool RobotInteraction::readMessage(std::string &message)
     return  false;
 }
 
-
+// wipe all data in the blackboard
 bool RobotInteraction::resetBlackboard()
 {
-
-    Bottle cmd, reply;
-
-    cmd.addString("initialize");
-    blackboard_client_port_.write(cmd, reply);
+    blackboardClient_.resetData();
     return true;
 }
 
-
-
-
 bool RobotInteraction::closeDoor()
 {
-
     Bottle cmd, reply;
     cmd.addString("setPose");
     cmd.addString("Door");
@@ -152,7 +124,6 @@ bool RobotInteraction::closeDoor()
 
 bool RobotInteraction::openDoor()
 {
-
     Bottle cmd, reply;
     cmd.addString("setPose");
     cmd.addString("Door");
