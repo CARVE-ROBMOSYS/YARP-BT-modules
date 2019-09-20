@@ -71,8 +71,8 @@ public:
         // finally get the actual value from data
         if(!data.check(flagName))
         {
-            yError() << std::string("Requested flag <") + flagName + " was not found in the blackboard for target <" + target.target + ">.";
-            return BT_ERROR;
+            yError() << std::string("Requested flag <") + flagName + "> was not found in the blackboard for target <" + target.target + ">.";
+            return BT_FAILURE;
         }
 
         ReturnStatusVocab a;
