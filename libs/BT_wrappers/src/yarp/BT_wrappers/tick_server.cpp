@@ -14,8 +14,9 @@
 #include "tick_server.h"
 
 #include <thread>
-#include <iostream>
 #include <future>
+#include <iostream>
+#include <algorithm>
 
 #include <yarp/os/LogStream.h>
 #include <yarp/os/PortablePair.h>
@@ -294,6 +295,9 @@ bool TickServer::configure_TickServer(std::string portPrefix, std::string server
     {
         yError() << "Parameter <serverName> is mandatory";
     }
+
+    std::replace(portPrefix.begin(), portPrefix.end(), ' ', '_');
+    std::replace(serverName.begin(), serverName.end(), ' ', '_');
 
     std::string requestPort_name = portPrefix + "/" + serverName + "/tick:i";
 

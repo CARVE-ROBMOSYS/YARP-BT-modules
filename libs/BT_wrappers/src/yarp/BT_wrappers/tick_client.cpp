@@ -46,9 +46,12 @@ bool TickClient::configure_TickClient(std::string portPrefix, std::string client
     _portPrefix = portPrefix;
     _clientName = clientName;
 
-    std::string requestPort_name = portPrefix + "/" + clientName + "/tick:o";
     // substitute blanks in name with underscore character
-    std::replace(requestPort_name.begin(), requestPort_name.end(), ' ', '_');
+    std::replace(portPrefix.begin(), portPrefix.end(), ' ', '_');
+    std::replace(clientName.begin(), clientName.end(), ' ', '_');
+
+    std::string requestPort_name = portPrefix + "/" + clientName + "/tick:o";
+
     if (!_requestPort.open(requestPort_name.c_str())) {
         yError() << _clientName << ": Unable to open port " << requestPort_name;
         return false;
