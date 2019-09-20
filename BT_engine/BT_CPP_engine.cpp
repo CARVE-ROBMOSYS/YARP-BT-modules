@@ -281,7 +281,7 @@ public:
         // In this case, the entire sequence is executed, because all the children
         // of the Sequence return SUCCESS.
 
-        int i{0};
+        static int i{0};
         yDebug() << "start running the BT ";
 
         std::cout << "\nIteration num " << i++ << "\n";
