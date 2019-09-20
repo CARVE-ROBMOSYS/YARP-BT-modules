@@ -1,12 +1,37 @@
-# README #
-YARP package for Behavior Tree's leaf nodes (Actions and Conditions).
+# Behavior Trees in YARP #
+
+### Table of Contents
+
+  * [What is this repository for?](#what-is-this-repository-for)
+  * [Repository Structure](#repository-structure)
+  * [Installation](#installation)
+  * [Quick glance at Behavior Trees in YARP](#quick-glance-at-behavior-trees-in-yarp)
+  * [Targets](#targets)
+  
+  
+### What is this repository for?
+This repository contains the libraries to create Behavior Tree nodes and the engine required to run a full BT.
+The nodes can be created as pure YARP code or integrated with [BehaviorTree.CPP](https://github.com/BehaviorTree/BehaviorTree.CPP) library.
 
 
-### What is this repository for? ###
+### Repository Structure ###
+This package contains:
 
-This package contains the C++ classes that your class should inherith. It also contains two small examples: one for an action node and one for a condition node. 
+Libraries:
+- [YARP BT wrapper lib](libs/BT_wrappers): Client/Server YARP wrapper to handle the network communication and propagate the `tick` from the engine to the leaf node implementing the functionality. Thrift powered.
+- [BT_CPP_leaves](libs/BT_CPP_leaves): a basic and flexible set of predefined BT leaf nodes compatible with [BehaviorTree.CPP](https://github.com/BehaviorTree/BehaviorTree.CPP) library.
 
-### How do I get set up? ###
+Executables:
+- Behavior Tree engine using [BehaviorTree.CPP](https://github.com/BehaviorTree/BehaviorTree.CPP) library and compatible with [Groot](https://github.com/BehaviorTree/Groot) GUI.
+- Set of executable nodes handling common funtionalities of the robot, like navigation.
+- A YARP Blackboard for sharing data between nodes and other parameters.
+
+### Installation ###
+
+Dependencies:
+
+In order to implement new nodes, the only dependency required is [YARP](https://github.com/robotology/YARP).
+If you wish to run the engine or create new a leaf node, then [BehaviorTree.CPP](https://github.com/BehaviorTree/BehaviorTree.CPP) library is required.
 
 Download and build the repository 
 
@@ -19,69 +44,50 @@ $ cmake ..
 $ make -j
 ```
 
-### Set up a Behavior Tree's action in YARP
-The file examples/server_example.cpp is an example on how the your YARP BT action should look like, it performs an action (it is an action in the Behavior Tree).
-Your action is a thrift server and does stuff. The Behavior Tree is a client and tells to the Server when and if the Server have to start (Tick) and which have to stop (Halt).
-
-Your class must extend `TickServer` and implement (override) two functions: `ReturnStatus execute_tick(const std::string& params = "")` and `ReturnStatus execute_halt(const std::string& params = "")`
+If BehaviorTree.CPP library is found, corresponding nodes and the engine will automatically be compiled.
+It is then required to add the `BT_CPP_PLUGIN_DIRS` environment variable pointing to the `lib` folder in the build or install path, in order to load the node plugins at runtime.
 
 
-In the function `execute_tick` you must write the code to be executed when the module needs to be run.
-The function it must set the return status **via the function `void set_status(ReturnStatus status)`** to  BT_SUCCESS if the execution of the action has succeeded and BT_FAILURE if it has failed.
-To allow preemption of your action, it is preferable to check whenever possible if the action has been halted checking the function `is_halt_requested()`.
+### Quick glance at Behavior Trees in YARP
 
-For example:
+The general idea is shown in the picture:
 
+![](doc/BT_CPP_integration.png)
 
-    ReturnStatus execute_tick()
-    {
-        if (!is_halt_requested())
-        {
-            std::cout << "Doing Something" << std::endl;
-        }
-        return BT_SUCCESS;
-    }
+The engine will send `tick` request to the nodes, either actions or conditions. The node will fetch required parameters from the BlackBoard (a YARP executable) and then propagate the `tick` to the server implementing the action, via YARP message. The return value is an enum value defining the state of the node; after the engine receives the return value it'll continue the execution accordingly. Requests and return values are defined in the [thrift file](libs/BT_wrappers/thrift/BT_wrappers.thrift).
 
+The Behavior Tree engine has two parameters:
 
-In the function `execute_halt` you must write the code to be executed when the module needs to be stopped (e.g. when stopping a walking module we would like to have to robot stop in a home position).
-For Example:
+- bt_description [**required**]: this is the name of the xml file containing the behavior tree description. It will be searched and loaded with the YARP resource finder, so the `--context` option can be used to better specify where to look for and the `--verbose` option will print all the paths the ResourceFinder is searching into.
+- libraries [**required for external plugins**]: this is the name of the plugin library the nodes have to be loaded from.
+For example this repository creates a library called `libBT_CPP_leaves.so` containing all the basic nodes. For more information they are described [here](https://github.com/barbalberto/YARP-BT-modules/tree/refactorPostCarve/libs/BT_CPP_leaves). This library is automatically added as a source of plugins, so there is no need to specify it, but 
+if you need to load plugins created by a different repository, the name of that library is then required. The library 
+will be searched in the paths contained in the `BT_CPP_PLUGIN_DIRS` environment variable. Note: the env var shall always point at least to the folder containing `libBT_CPP_leaves.so` since this library is always required.
 
-    ReturnStatus execute_halt()
-    {
-            std::cout << "Halting the Action" << std::endl;
-            return BT_HALTED;
-    }
+`BT_engine_cpp --bt_description my_BT.xml --context my_working_context --libraries my_lib.so`
 
-**NOTE:** The function `execute_halt` is blocking. Hence you should put here the piece of code you want to execute before continuing the execution of the Behavior Tree.
-          However, the code in `execute_tick` (between one is_halted() checkpoint and another) is still being executed in another thread. In some cases, we do not want to waste time waiting for the code to reach
-          the next checkpoint (e.g. the action is writing in a port that nobody is reading) but is some other cases, we do need to wait for the code to reach the next checkpoint (e.g. the action is writing commands to a motor).
-          If we want to wait for the code to reach the next checkpoint, just add the following while loop in the function Halt().
+The Groot GUI will show the graphical representation of the BT like in the following picture.
+
+![](doc/BT_example.png)
 
 
-        while (is_running())
-        {
-            std::cout << "The Action is still running, waiting for the code to reach the next checkpoint" << std::endl;
-            // a sleep here could be helpful
-        }
+To understand how BT nodes communicate in YARP, see [YARP BT wrapper lib](libs/BT_wrappers) <br>
+Then to better understand the integration with BehaiorTree_CPP library and the engine, see [BT_CPP_leaves](libs/BT_CPP_leaves)
 
-        
-If not, do not add the while loop.
-Then set a name for your module. The name has the be unique. It will be used bt the behavior tree to recognize it. For example if you created a class called MyBTModule
+### Targets
 
-     MyActionModule* action_module = new MyActionModule("MyBTAction");
+Target is an important concept that helps bridging the gap from a conceptual behavior tree and its node implementation.
+In a pure BT each node is a standalone instance of a class, therefore using the same node twice generates two separated instances that can work together, also in parallel. For complex task, like for example the navigation task, it is common to have a single component carring out the task (or a stack of components working together) and a single point of access where requests are sent along with the required parameters. This architecture does not fit well in a behavior tree approach, because it is not efficient to instantiate all the navigation stack every time a move action is required and the tick function does not allows parameters.
 
-
-### Set up a Behavior Tree's condition in YARP
-The procedure is similar to the one for the action node, with the only difference that you don't need to implement the function `execute_halt`.
+An example is shown in the picture.
+![](doc/Go_to_example.png)
 
 
-    
-
-### Test your YARP action or condition
-
-You can test your action or condition by running the module and calling the rpc services `request_tick()`  and `request_halt()`, the latter for actions only. 
-The port name is `/<module_name>/cmd` (e.g. for the module abovem the port is /MyBTAction/cmd)
-
+The `target` is the approach used to overcome these limitations: each node in the BT has a target (optional) which has a threefold usage:
+  - Allows transparent node re-use as expected from a behavior tree
+  - It is the node *principal parameter*, used as a *key* to retrieve addictional parameters from the shared BlackBoard. For more information about the YARP BlackBoard see [here](libs/BT_wrappers/BlackBoard)
+  - Allows node implementation (es: navigation stack) to distinguish between different requests. This means that 
+  a `halt` request to node GoTo_LivingRoom will not stop the GoTo_Kitchen action from running, even though the server executable receiving both requests is the same one.
 
 ### Responsible ###
 

@@ -5,18 +5,19 @@
 #                                                                              #
 ################################################################################
 # @authors: Michele Colledanchise <michele.colledanchise@iit.it>
-
-project(YARPBTModules)
+# @authors: Alberto Cardellino <alberto.cardellino@iit.it>
 cmake_minimum_required(VERSION 3.0)
 
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+project(YARPBTModules   LANGUAGES CXX C
+                        VERSION   2.0.0)
 
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 ##########################################################
 ## ENABLE C++14 and thread
@@ -31,76 +32,72 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 #########################################################
-# FIND YARP
+# Find YCM
 #########################################################
-find_package(YARP REQUIRED)
+find_package(YCM REQUIRED)
+
+#########################################################
+# Find YARP
+#########################################################
+find_package(YARP REQUIRED COMPONENTS OS dev math idl_tools)
+
+
+#########################################################
+# Find behaviour tree library
+#########################################################
+find_package(BehaviorTree REQUIRED)
+if(NOT BehaviorTree_FOUND)
+    message(WARNING "BehaviorTree lib not found. Modules for BT engine will not be compiled.")
+endif()
+
+#########################################################
+# Find rFSM library for monitors
+#########################################################
+find_package(rFSM QUIET)
+if(NOT rFSM_FOUND)
+    message(WARNING "rFSM lib not found. Monitor will not be compiled.")
+endif()
+
+
+include(AddInstallRPATHSupport)
+message("CMAKE_INSTALL_FULL_BINDIR is ${CMAKE_INSTALL_FULL_BINDIR}")
+add_install_rpath_support(BIN_DIRS "${CMAKE_INSTALL_FULL_BINDIR}"
+                          LIB_DIRS "${CMAKE_INSTALL_FULL_LIBDIR}"
+                          INSTALL_NAME_DIR "${CMAKE_INSTALL_FULL_LIBDIR}"
+                          USE_LINK_PATH)
+
 
 #########################################################
 # GENERATING FILES FOR BEHAVIOR TREE'S THRIFT COMMANDS
 #########################################################
-set(generated_libs_dir "${CMAKE_CURRENT_SOURCE_DIR}")
-yarp_idl_to_dir(BTCmd.thrift ${generated_libs_dir}  sources headers include_dirs)
-yarp_idl_to_dir(BT_monitoring.thrift ${generated_libs_dir}  sources2 headers2 include_dirs2)
-
-message("sources ${sources}")
-message("sources2 ${sources2}")
-
-include_directories(${CMAKE_SOURCE_DIR} )
-include_directories(${PROJECT_SOURCE_DIR}/include/)
-
-
-# set(YARP_BT_MODULES_SRC src/yarp_bt_module.cpp
-#                         src/BTCmd.cpp
-#                         src/ReturnStatus.cpp)
-
-set(YARP_TICK_LIB_SRC   ${sources} ${sources2}
-                        ${PROJECT_SOURCE_DIR}/src/tick_server.cpp
-                        ${PROJECT_SOURCE_DIR}/src/tick_client.cpp
-                        )
-
-
+# AND Building library
 #####################################################
-# Building library
-#####################################################
-
-add_library(${PROJECT_NAME} SHARED ${YARP_TICK_LIB_SRC})
-target_link_libraries(${PROJECT_NAME} PUBLIC ${YARP_LIBRARIES})
-
-target_include_directories(${PROJECT_NAME}
-        PUBLIC      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-                    $<INSTALL_INTERFACE:include>)
-
+add_subdirectory(libs)
 
 #####################################################
 # Building Examples about lib
 #####################################################
+add_subdirectory(examples)
 
-add_executable(client_example examples/client_example.cpp)
-target_link_libraries(client_example ${PROJECT_NAME} )
+#####################################################
+# Building executables
+#####################################################
+add_subdirectory(BT_engine)
+add_subdirectory(modules)
 
-add_executable(server_example examples/server_example.cpp)
-target_link_libraries(server_example ${PROJECT_NAME})
-
-add_subdirectory(scenarios)
-add_subdirectory(monitor)
-add_subdirectory(monitors)
+if(rFSM_FOUND)
+    add_subdirectory(monitors)
+endif()
 
 
-######################################################
-# EXPORTS
+include(InstallBasicPackageFiles)
+install_basic_package_files(${PROJECT_NAME}
+                            VERSION ${${PROJECT_NAME}_VERSION}
+                            COMPATIBILITY AnyNewerVersion
+                            VARS_PREFIX ${PROJECT_NAME}
+                            NO_CHECK_REQUIRED_COMPONENTS_MACRO)
 
-set(PROJECT_CONFIG ${PROJECT_NAME}Config)
-export(TARGETS ${PROJECT_NAME}
-       FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_CONFIG}.cmake")
 
-install(TARGETS ${PROJECT_NAME}
-   EXPORT ${PROJECT_CONFIG}
-   ARCHIVE DESTINATION lib
-   LIBRARY DESTINATION lib   )
+# Add the uninstall target
+include(AddUninstallTarget)
 
-INSTALL( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
-    DESTINATION include
-    FILES_MATCHING PATTERN "*.h*")
-
-install(EXPORT ${PROJECT_CONFIG}
-    DESTINATION "lib/cmake")
