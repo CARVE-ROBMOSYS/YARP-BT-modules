@@ -67,6 +67,10 @@ public:
 
     ReturnStatus request_status(const ActionID& target) override;
 
+private:
+    void sendMonitorMessage_request();
+    void sendMonitorMessage_reply();
+    void sendMonitorMessage_reset();
 };
 
 TickServer::RequestHandler::RequestHandler(TickServer *owner) :  _owner(owner)
@@ -89,18 +93,41 @@ bool TickServer::RequestHandler::request_terminate()
     return _owner->request_terminate();
 }
 
-ReturnStatus TickServer::RequestHandler::request_tick(const ActionID& target, const yarp::os::Property& params)
+void TickServer::RequestHandler::sendMonitorMessage_request()
 {
     // Place here a message for monitoring: we received a tick msg
-    {   // additional scope, to cleanup the variables afterward
         yarp::os::PortablePair<yarp::BT_wrappers::MonitorMsg, Bottle> monitor;
         MonitorMsg &msg = monitor.head;
         msg = monitor.head;
         msg.skill     = _owner->_serverName;
         msg.event     = "e_req";
         _owner->_toMonitor_port.write(monitor);
-    }
+}
 
+void TickServer::RequestHandler::sendMonitorMessage_reply()
+{
+    // Place here a message for monitoring: we received a tick msg
+        yarp::os::PortablePair<yarp::BT_wrappers::MonitorMsg, Bottle> monitor;
+        MonitorMsg &msg = monitor.head;
+        msg = monitor.head;
+        msg.skill     = _owner->_serverName;
+        msg.event     = "e_from_env";
+        _owner->_toMonitor_port.write(monitor);
+}
+
+void TickServer::RequestHandler::sendMonitorMessage_reset()
+{
+    // Place here a message for monitoring: we received a tick msg
+        yarp::os::PortablePair<yarp::BT_wrappers::MonitorMsg, Bottle> monitor;
+        MonitorMsg &msg = monitor.head;
+        msg = monitor.head;
+        msg.skill     = _owner->_serverName;
+        msg.event     = "e_reset";
+        _owner->_toMonitor_port.write(monitor);
+}
+
+ReturnStatus TickServer::RequestHandler::request_tick(const ActionID& target, const yarp::os::Property& params)
+{
     // Get ActionData corresponding to requested ActionID;
     // if ActionID is new, create the entry in the map
     ActionData &targetData =  _targetMap[target];
@@ -110,8 +137,8 @@ ReturnStatus TickServer::RequestHandler::request_tick(const ActionID& target, co
     // for synch between tick and halt
     std::unique_lock<std::mutex> lk(targetData._cv_mutex);
 
-    yDebug() << "TickServer::RequestHandler::request_tick(action " << target.target << \
-                " params " << params.toString() << ") threaded is " << _owner->_threaded << " status is " << statusString.toString(return_status);
+    yDebug() << _owner->_serverName << " TickServer::RequestHandler::request_tick(target <" << target.target << \
+                "> params <" << params.toString() << ">) threaded is " << _owner->_threaded << " status is " << statusString.toString(return_status);
 
     switch (return_status)
     {
@@ -157,6 +184,9 @@ ReturnStatus TickServer::RequestHandler::request_tick(const ActionID& target, co
             /* In case the routine is not running, then let's start it */
             if(_owner->_threaded)
             {
+                // Place here a message for monitoring: we received a tick msg
+                sendMonitorMessage_request();
+
                 yDebug() << "Spawning thread";
                 _owner->_thread_finished = false;
                 targetData.future_res = std::async([this, &target, &params, &targetData]
@@ -165,6 +195,9 @@ ReturnStatus TickServer::RequestHandler::request_tick(const ActionID& target, co
                                                         // wake up condition variable
                                                         _owner->_thread_finished = true;
                                                         targetData._cv_wait_for_thread.notify_one();
+
+                                                        // send message to monitor: we are done with it
+                                                        sendMonitorMessage_reply();
                                                         return ret;
                                                     });
                 targetData.status = BT_RUNNING;
@@ -172,10 +205,16 @@ ReturnStatus TickServer::RequestHandler::request_tick(const ActionID& target, co
             }
             else
             {
+                // Place here a message for monitoring: we received a meaningful tick msg
+                sendMonitorMessage_request();
+
                 /* In case user's routine is quick and does not require a separated thread,
                  * then the server will simply run it and returns the user's return value
                  */
                 return_status = _owner->request_tick(target, params);
+
+                // send message to monitor: we are done with it
+                sendMonitorMessage_reply();
             }
         } break;
 
@@ -188,15 +227,6 @@ ReturnStatus TickServer::RequestHandler::request_tick(const ActionID& target, co
         }
     }
 
-    // send message to monitor: we are done with it
-    {   // additional scope, to cleanup the variables afterward
-        yarp::os::PortablePair<yarp::BT_wrappers::MonitorMsg, Bottle> monitor;
-        MonitorMsg &msg = monitor.head;
-        msg = monitor.head;
-        msg.skill     = _owner->_serverName;
-        msg.event     = "e_from_env";
-        _owner->_toMonitor_port.write(monitor);
-    }
     return return_status;
 }
 
@@ -249,10 +279,8 @@ ReturnStatus TickServer::RequestHandler::request_halt(const ActionID& target, co
         } break;
     }
 
-
-    // Unset is_halt_requested ???
-    // targetData.is_halt_requested = false;
-
+    // send message to the monitor
+    sendMonitorMessage_reset();
     targetData.is_halt_requested = false;
 
     return return_status;
