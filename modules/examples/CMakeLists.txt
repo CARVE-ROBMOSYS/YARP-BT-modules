@@ -8,8 +8,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(examples    fake_action
-                fake_condition)
+set(examples    fake_action)
 
 # build and install
 foreach(exec ${examples})
