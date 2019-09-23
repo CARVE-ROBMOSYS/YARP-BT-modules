@@ -74,6 +74,8 @@ The Groot GUI will show the graphical representation of the BT like in the follo
 To understand how BT nodes communicate in YARP, see [YARP BT wrapper lib](libs/BT_wrappers) <br>
 Then to better understand the integration with BehaiorTree_CPP library and the engine, see [BT_CPP_leaves](libs/BT_CPP_leaves)
 
+A more detailed explanation of the idea behind the integratio of Behavior Tree in YARP is shown in the [presentation](doc/Behavior_Tree_Presentation.pdf)
+
 ### Targets
 
 Target is an important concept that helps bridging the gap from a conceptual behavior tree and its node implementation.
