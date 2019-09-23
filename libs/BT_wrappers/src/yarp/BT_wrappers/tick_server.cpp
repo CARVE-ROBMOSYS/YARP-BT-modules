@@ -96,34 +96,28 @@ bool TickServer::RequestHandler::request_terminate()
 void TickServer::RequestHandler::sendMonitorMessage_request()
 {
     // Place here a message for monitoring: we received a tick msg
-        yarp::os::PortablePair<yarp::BT_wrappers::MonitorMsg, Bottle> monitor;
-        MonitorMsg &msg = monitor.head;
-        msg = monitor.head;
-        msg.skill     = _owner->_serverName;
-        msg.event     = "e_req";
-        _owner->_toMonitor_port.write(monitor);
+    yarp::BT_wrappers::MonitorMsg msg;
+    msg.skill     = _owner->_serverName;
+    msg.event     = "e_req";
+    _owner->_toMonitor_port.write(msg);
 }
 
 void TickServer::RequestHandler::sendMonitorMessage_reply()
 {
     // Place here a message for monitoring: we received a tick msg
-        yarp::os::PortablePair<yarp::BT_wrappers::MonitorMsg, Bottle> monitor;
-        MonitorMsg &msg = monitor.head;
-        msg = monitor.head;
-        msg.skill     = _owner->_serverName;
-        msg.event     = "e_from_env";
-        _owner->_toMonitor_port.write(monitor);
+    yarp::BT_wrappers::MonitorMsg msg;
+    msg.skill     = _owner->_serverName;
+    msg.event     = "e_from_env";
+    _owner->_toMonitor_port.write(msg);
 }
 
 void TickServer::RequestHandler::sendMonitorMessage_reset()
 {
     // Place here a message for monitoring: we received a tick msg
-        yarp::os::PortablePair<yarp::BT_wrappers::MonitorMsg, Bottle> monitor;
-        MonitorMsg &msg = monitor.head;
-        msg = monitor.head;
-        msg.skill     = _owner->_serverName;
-        msg.event     = "e_reset";
-        _owner->_toMonitor_port.write(monitor);
+    yarp::BT_wrappers::MonitorMsg msg;
+    msg.skill     = _owner->_serverName;
+    msg.event     = "e_reset";
+    _owner->_toMonitor_port.write(msg);
 }
 
 ReturnStatus TickServer::RequestHandler::request_tick(const ActionID& target, const yarp::os::Property& params)

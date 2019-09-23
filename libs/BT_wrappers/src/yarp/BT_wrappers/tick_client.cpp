@@ -77,30 +77,27 @@ bool TickClient::connect(std::string serverName)
 
 ReturnStatus TickClient::request_tick(const yarp::BT_wrappers::ActionID &target, const yarp::os::Property &params)
 {
+    yInfo() << "\tCalling tick on remote <" + _serverName + "> with target <" + target.target + "> and params <" + params.toString() + ">";
+
     // Propagate message to the monitor
     {   // additional scope, to cleanup the variables afterward
-        yarp::os::PortablePair<yarp::BT_wrappers::MonitorMsg, Bottle> monitor;
-        MonitorMsg &msg = monitor.head;
-        msg = monitor.head;
+        yarp::BT_wrappers::MonitorMsg msg;
         msg.skill     = _serverName;
         msg.event     = "e_from_bt";
-        _toMonitor_port.write(monitor);
+        _toMonitor_port.write(msg);
     }
 
-    yInfo() << "\tCalling tick on target <" + target.target + "> with param <" + params.toString() + "> to remote server <" + _serverName + ">";
+    yInfo() << "\tCalling tick on remote <" + _serverName + "> with target <" + target.target + "> and params <" + params.toString() + ">";
     // Send the actual message to the server
     status_ = BT_request::request_tick(target, params);
 
     // Propagate message to the monitor
     {   // additional scope, to cleanup the variables afterward
-        yarp::os::PortablePair<yarp::BT_wrappers::MonitorMsg, Bottle> monitor;
-        MonitorMsg &msg = monitor.head;
-        msg = monitor.head;
+        yarp::BT_wrappers::MonitorMsg msg;
         msg.skill     = _serverName;
         msg.event     = "e_to_bt";
-        _toMonitor_port.write(monitor);
+        _toMonitor_port.write(msg);
     }
-
     return status_;
 }
 
