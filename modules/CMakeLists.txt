@@ -22,3 +22,4 @@ foreach(exec ${modules})
     install(TARGETS ${exec} DESTINATION bin)
 endforeach(exec)
 
+add_subdirectory(examples)

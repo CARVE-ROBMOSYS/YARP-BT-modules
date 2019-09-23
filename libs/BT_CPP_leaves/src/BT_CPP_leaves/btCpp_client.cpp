@@ -94,6 +94,7 @@ bool BtCppClient::initialize(Searchable &params)
     if(targetName)
     {
         m_targetId.target = targetName.value();
+        yInfo() << "Node <" + this->name() + "> target is " << m_targetId.target ;
     }
     else
     {
@@ -104,7 +105,16 @@ bool BtCppClient::initialize(Searchable &params)
     // get resource list, if any
     Optional<std::string> resources = getInput<std::string>("resources");
     m_targetId.action_ID = (int32_t) UID();
-    m_targetId.resources = resources.value();
+    if(resources)
+    {
+        m_targetId.resources = resources.value();
+        yInfo() << "Node <" + this->name() + "> resources used are: " << m_targetId.target ;
+    }
+    else
+    {
+        yInfo() << "Node <" + this->name() + "> does not uses resources";
+        m_targetId.resources = {};
+    }
 
     if(!m_tickClient.request_initialize())
     {
@@ -133,8 +143,12 @@ NodeStatus BtCppClient::tick()
     // if we have a target, fetch the corresponding params from blackboard, if any
     if(targetName)
     {
-        m_params = m_blackBoardClient.getData(targetName.value());
-        yInfo() << "Got data from blackboard " << m_params.toString();
+        string tName = targetName.value();
+        if(tName != "")
+        {
+            m_params = m_blackBoardClient.getData(targetName.value());
+            yInfo() << "Got data from blackboard " << m_params.toString();
+        }
     }
 
     yInfo() << "before tick() " << this->name();

@@ -57,9 +57,9 @@ BT_REGISTER_NODES(factory)
     factory.registerNodeType<bt_cpp_modules::BtCppCheckRootInRoom>("IsRobotInRoom");
     factory.registerNodeType<bt_cpp_modules::BtCppCheckRobotAtLocation>("IsRobotAtLocation");
 
-    factory.registerNodeType<bt_cpp_modules::BtCppSetCondition>("Set_Condition");
-    factory.registerNodeType<bt_cpp_modules::BtCppResetCondition>("Reset_Condition");
-    factory.registerNodeType<bt_cpp_modules::BtCppResetCondition>("Reset_InvPoseValid");
-    factory.registerNodeType<bt_cpp_modules::BtCppResetCondition>("Reset_InvPoseComputed");
+    factory.registerNodeType<bt_cpp_modules::BtCppSetCondition>("SetCondition");
+    factory.registerNodeType<bt_cpp_modules::BtCppResetCondition>("ResetCondition");
+    factory.registerNodeType<bt_cpp_modules::BtCppResetCondition>("ResetInvPoseValid");
+    factory.registerNodeType<bt_cpp_modules::BtCppResetCondition>("ResetInvPoseComputed");
 
 }
