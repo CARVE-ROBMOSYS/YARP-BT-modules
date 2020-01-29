@@ -28,6 +28,7 @@
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::dev;
+using namespace yarp::dev::Nav2D;
 using namespace yarp::sig;
 using namespace yarp::BT_wrappers;
 
@@ -66,7 +67,7 @@ public:
         Bottle & location = params.findGroup("location");
         yDebug() << "location is " << location.toString();
 
-        yarp::dev::Map2DLocation desiredLoc;
+        yarp::dev::Nav2D::Map2DLocation desiredLoc;
         desiredLoc.map_id = location.find("map_id").asString();
         desiredLoc.x      = location.find("x").asDouble();
         desiredLoc.y      = location.find("y").asDouble();

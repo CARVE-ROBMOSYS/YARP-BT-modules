@@ -32,6 +32,7 @@ using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::dev;
+using namespace yarp::dev::Nav2D;
 using namespace yarp::BT_wrappers;
 
 /****************************************************************/
