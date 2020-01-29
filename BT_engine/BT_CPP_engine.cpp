@@ -6,16 +6,16 @@
 
 #include <yarp/os/YarpPlugin.h>
 
-#include <behaviortree_cpp/bt_factory.h>
+#include <behaviortree_cpp_v3/bt_factory.h>
 #include <BT_CPP_leaves/btCpp_common.h>
 
-#include <behaviortree_cpp/blackboard.h>
+#include <behaviortree_cpp_v3/blackboard.h>
 
 // For Groot monitor
-#include <behaviortree_cpp/loggers/bt_cout_logger.h>
-#include <behaviortree_cpp/loggers/bt_file_logger.h>
-#include <behaviortree_cpp/loggers/bt_zmq_publisher.h>
-#include <behaviortree_cpp/loggers/bt_minitrace_logger.h>
+#include <behaviortree_cpp_v3/loggers/bt_cout_logger.h>
+#include <behaviortree_cpp_v3/loggers/bt_file_logger.h>
+#include <behaviortree_cpp_v3/loggers/bt_zmq_publisher.h>
+#include <behaviortree_cpp_v3/loggers/bt_minitrace_logger.h>
 
 
 using namespace BT;

@@ -19,7 +19,7 @@
 #include "btCpp_checkRobotInRoom.h"
 #include "btCpp_checkRobotAtLocation.h"
 
-#include <behaviortree_cpp/bt_factory.h>
+#include <behaviortree_cpp_v3/bt_factory.h>
 
 
 // Register at once all the Actions and Conditions in this file

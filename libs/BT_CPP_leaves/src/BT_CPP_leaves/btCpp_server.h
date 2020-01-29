@@ -26,8 +26,8 @@
 #include <yarp/BT_wrappers/BT_request.h>
 #include <experimental/propagate_const>
 
-#include <behaviortree_cpp/bt_factory.h>
-#include <behaviortree_cpp/behavior_tree.h>
+#include <behaviortree_cpp_v3/bt_factory.h>
+#include <behaviortree_cpp_v3/behavior_tree.h>
 
 namespace bt_cpp_modules {
 

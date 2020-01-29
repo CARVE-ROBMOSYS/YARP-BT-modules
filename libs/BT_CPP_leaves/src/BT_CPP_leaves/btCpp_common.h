@@ -14,7 +14,7 @@
 #define YARP_BT_CPP_COMMON_H
 
 #include <yarp/BT_wrappers/ReturnStatus.h>
-#include <behaviortree_cpp/basic_types.h>
+#include <behaviortree_cpp_v3//basic_types.h>
 
 namespace bt_cpp_modules {
 
