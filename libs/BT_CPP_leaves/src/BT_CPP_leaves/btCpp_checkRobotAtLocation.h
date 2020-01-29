@@ -66,7 +66,7 @@ private:
     yarp::os::Port      pathPlanner_port;
 
     yarp::dev::INavigation2D       *iNav = 0;
-    yarp::dev::Map2DLocation       pos,curr_goal;
+    yarp::dev::Nav2D::Map2DLocation       pos,curr_goal;
     yarp::dev::PolyDriver          ddNavClient;
 
     //Gets the current navigation status
